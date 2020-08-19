@@ -1,0 +1,169 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Appr</title>
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <script src="~/layui/layui.js"></script>
+    <link href="~/layui/css/layui.css" rel="stylesheet" />
+</head>
+<body>
+    @*<input hidden="hidden" type="hidden" id="start" />
+    <input hidden="hidden" type="hidden" id="end" />*@
+    <div class="layui-tab layui-tab-card" id="tab">
+        <ul class="layui-tab-title">
+            <li class="layui-this" layui-id="todo" onclick="Refresh()">待办</li>
+            <li layui-id="finish" onclick="Refresh1()">已办</li>
+        </ul>
+        <div class="layui-tab-content">
+            <div class="layui-tab-item layui-show">
+                <table id="table1" lay-filter="table1"></table>
+            </div>
+            <div class="layui-tab-item">
+                <div class="layui-inline">
+                    <input type="text" class="layui-input" id="date" placeholder="时间范围">
+                </div>
+                <div class="layui-inline">
+                    <a class="layui-btn layui-btn-sm" onclick="Refresh1()" id="Query" style="text-decoration:none;">查询</a>
+                </div>
+                <table id="table2" lay-filter="table2"></table>
+            </div>
+        </div>
+    </div>
+    <script type="text/html" id="EditData">
+        <a class="layui-btn layui-btn-xs" href="javascript:win_show('{{d.DOC_ID}}','{{d.APPR_ID}}','{{d.T}}','sp')" >处理</a>
+    </script>
+    <script type="text/html" id="EditData2">
+        <a class="layui-btn layui-btn-xs" href="javascript:win_show('{{d.DOC_ID}}','{{d.APPR_ID}}','{{d.T}}','view')" style="text-decoration:underline">查看</a>
+    </script>
+    <script>
+        function addDate(date, days) {
+            var d = new Date(date);
+            d.setDate(d.getDate() + days);
+            var m = d.getMonth() + 1;
+            return d.getFullYear() + '-' + m + '-' + d.getDate();
+        }
+        var form, layer, table, ins, element, laydate;
+        layui.use(['table', 'form', 'element', 'laydate'], function () {
+            form = layui.form, layer = layui.layer, table = layui.table, element = layui.element, laydate = layui.laydate;
+            element.on('tab(tab)', function () {
+                location.hash = 'tab=' + this.getAttribute('lay-id');
+                Refresh();
+            });
+            laydate.render({
+                elem: '#date',
+                range: true
+            });
+            var myDate = new Date;
+            var dayless = addDate(myDate, -7);
+            var dayadd = addDate(myDate,7);
+            $('#date').val(dayless + " - " + dayadd);
+            table.render({
+                elem: '#table1'
+                , height: document.documentElement.clientHeight - 100
+                , url: '@Url.Action("GetWorkFlowByPerson", "WorkFlow")',
+                method: 'get'
+                , page: true //开启分页
+                , limit: 20
+                , limits: [20, 50, 100]
+                , cols: [[ //表头
+                    , { field: 'DOC_ID', align: 'center', title: 'ID', sort: true, hide: true }
+                    , { field: 'APPR_ID', align: 'center', title: 'APPR_ID', sort: true, hide: true }
+                    , { field: 'T', align: 'center', title: 'T', sort: true, hide: true }
+                    //, { field: 'IS_JI', title: '是否加急', sort: true }
+                    , {
+                        field: 'DOC_TITLE', align: 'center', title: '标题', sort: true, templet: function (d) {
+                            return "<a style='color:skyblue;text-decoration:underline' href='javascript:win_show(\"" + d.DOC_ID + "\",\"" + d.APPR_ID + "\",\"" + d.T + "\",\"sp\")' >" + d.DOC_TITLE + "</a>";
+                        }}
+                    , { field: 'DOC_NOTE', align: 'center', title: '说明', sort: true }
+                    , { field: 'APPL_DEPT', align: 'center', title: '发布单位', sort: true }
+                    , { field: 'APPL_PERSON', align: 'center', title: '发布人', sort: true }
+                    , { field: 'APPL_DATE', align: 'center', title: '发布时间', sort: true }
+                ]]
+            });
+
+            table.render({
+                elem: '#table2'
+                , height: document.documentElement.clientHeight * 0.8 - 38
+                , url: '@Url.Action("GetFinishWorkFlowByPerson", "WorkFlow")',
+                data: {
+                    startDate: ($("#date").val().substring(0, 10) == null ? "" : $("#date").val().substring(0, 10)),
+                    endDate: ($("#date").val().substring(12) == null ? "" : $("#date").val().substring(12))
+                },
+                method: 'get'
+                , page: true //开启分页
+                , limit: 20
+                , limits: [20, 50, 100]
+                , cols: [[ //表头
+                    , { field: 'DOC_ID', align: 'center',title: 'ID', sort: true, hide: true }
+                    , { field: 'APPR_ID', align: 'center', title: 'APPR_ID', sort: true, hide: true }
+                    , { field: 'T', title: 'T', align: 'center', sort: true, hide: true }
+                    //, { field: 'IS_JI', title: '是否加急', sort: true }
+                    , {
+                        field: 'DOC_TITLE', align: 'center', title: '标题', sort: true, templet: function (d) {
+                            return "<a style='color:skyblue;text-decoration:underline' href='javascript:win_show(\"" + d.DOC_ID + "\",\"" + d.APPR_ID + "\",\"" + d.T + "\",\"view\")' >" + d.DOC_TITLE + "</a>";
+                        } }
+                    , { field: 'DOC_NOTE', align: 'center', title: '说明', sort: true }
+                    , { field: 'APPL_DEPT', align: 'center', title: '发布单位', sort: true }
+                    , { field: 'APPL_PERSON', align: 'center', title: '发布人', sort: true }
+                    , { field: 'APPL_DATE', align: 'center',title: '发布时间', sort: true }
+                ]]
+            });
+        });
+
+        //刷新
+        function Refresh() {
+            table.reload('table1', {
+                url: '@Url.Action("GetWorkFlowByPerson", "WorkFlow")',
+                method: 'get',
+                page: {
+                    curr: 1
+                }
+            });            
+        }
+        function Refresh1() {
+            var start = "";
+            var end = "";
+            if ($("#date").val().length == 20) {
+                start = $("#date").val().substring(0, 8);
+                end = $("#date").val().substring(10);
+            } else {
+                start = $("#date").val().substring(0, 10);
+                end = $("#date").val().substring(12);
+            }
+            table.reload('table2', {
+                url: '@Url.Action("GetFinishWorkFlowByPerson", "WorkFlow")',
+                method: 'get',
+                where:{
+                    startDate: start,
+                    endDate: end
+                },
+                page: {
+                    curr: 1
+                }
+            });
+        }
+        function win_show(doc_id,appr_id,t,view) {
+            if (t == "sp") {
+                url = '/WorkFlow/WorkFlowAppr?Doc_id=' + doc_id + '&status=' + view+'&apprid=' + appr_id;
+                title = view == "view" ? "查看 - 审批" : "审批";
+            } else {
+                url = '/WorkFlow/WorkFlowAppr?Doc_id=' + doc_id + '&status=cy&apprid=' + appr_id;
+                title = "传阅";
+            }
+            layer.open({
+                type: 2,
+                area: ['85%', '95%'],
+                title: title,
+                content: url
+            });
+        }
+    </script>
+</body>
+</html>

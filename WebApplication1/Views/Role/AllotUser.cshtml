@@ -1,0 +1,309 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>AllotUser</title>
+    <script src="~/layui/layui.js"></script>
+    <link href="~/layui/css/layui.css" rel="stylesheet" />
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+</head>
+<body>
+    <form class="layui-form" style="margin-top:5px;">
+        <div>
+            <div class="layui-inline"></div>
+            <div class="layui-inline">
+                <div class="layui-input-inline">
+                    <select name="Corp" id="corpSelect" lay-verify="" lay-filter="corpSelect" lay-search></select>
+                </div>
+                <div class="layui-input-inline">
+                    <select name="Dept" id="deptSelect" lay-verify="" lay-filter="deptSelect" lay-search></select>
+                </div>
+                <div class="layui-input-inline" id="Status">
+                    <input type="radio" name="radioName" lay-filter="radio" value="未选" title="未选用户" class="" checked="">
+                    <input type="radio" name="radioName" lay-filter="radio" value="已选" title="已选用户" class="">
+                </div>
+                <div class="layui-input-inline">
+                    <input type="text" id="user_name" lay-verify="" placeholder="请输入用户名称" class="layui-input" />
+                </div>
+            </div>
+            <div class="layui-inline">
+                <a class="layui-btn layui-btn-sm layui-btn-primary" onclick="Refresh()">查询</a>
+            </div>
+            <div class="layui-inline"><a class="layui-btn layui-btn-sm" id="btnAllot" onclick="btnCommit()">分配</a></div>
+            <div class="layui-inline"><a class="layui-btn layui-btn-sm layui-btn-danger" id="btnDel" onclick="btnRemove()">移除</a></div>
+            <table id="table1" lay-filter="table1"></table>
+        </div>
+    </form>
+    <script>
+        function GetCorp(form) {
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                url: '@Url.Action("GetCorp", "Public")',
+                success: function (res) {
+                    if (res.code == "0") {
+                        $.each(res.data, function (index, item) {
+                            if (index == 0) {
+                                $.ajax({
+                                    type: 'post',
+                                    dataType: 'json',
+                                    url: '@Url.Action("GetDeptByCorp", "Public")',
+                                    data: {
+                                        corp_id: '@ViewBag.corp_id'
+                                    },
+                                    success: function (res) {
+                                        if (res.code == "0") {
+                                            $('#deptSelect').append('<option value="-99">全部</option>');
+                                            $.each(res.data, function (index, item) {
+                                                $('#deptSelect').append('<option value="' + item.DEPT_ID + '">' + item.DEPT_NAME + '</option>');
+                                            });
+                                            $("#deptSelect").val('@ViewBag.dept_id');
+                                            form.render('select');
+                                        } else {
+                                            layer.msg(res.msg, {
+                                                icon: 5
+                                            });
+                                        }
+                                    },
+                                    error: function (res) {
+                                        layer.msg("加载部门信息出错了，请联系管理员", {
+                                            icon: 5
+                                        });
+                                    }
+                                });
+                            }
+                            $('#corpSelect').append('<option value="' + item.CORP_ID + '">' + item.CORP_NAME + '</option>');
+                        });
+                        $("#corpSelect").val('@ViewBag.corp_id');
+                        form.render('select');
+                    } else {
+                        layer.msg(res.msg, {
+                            icon: 5
+                        });
+                    }
+                },
+                error: function (res) {
+                    layer.msg("加载公司信息出错了，请联系管理员", {
+                        icon: 5
+                    });
+                }
+            });
+        }
+        var table, ins, layer;
+        layui.use(['table', 'form', 'layer'], function () {
+            table = layui.table, form = layui.form, layer = layui.layer;
+            GetCorp(form);
+            //渲染部门
+            //GetDept(form);
+            //渲染表格数据
+            table.render({
+                elem: '#table1'
+                , height: document.documentElement.clientHeight - 65
+                , url: '@Url.Action("GetUser", "Role")',
+                where: {
+                    user_name: "",
+                    dept_id: '@ViewBag.dept_id',
+                    role_id: '@ViewBag.role_id',
+                    corp_id:'@ViewBag.corp_id',
+                    status: '未选'
+                }, method: 'Post'
+                , page: true //开启分页
+                , limit: 10
+                , limits: [10, 20, 50]
+                , cols: [[ //表头
+                    { type: 'checkbox', fixed: 'left' }
+                    , { field: 'USER_ID', title: '用户ID', sort: true, hide: true }
+                    , { field: 'USER_CODE', title: '用户编码', sort: true }
+                    , { field: 'USER_NAME', title: '用户名称', sort: true }
+                    , { field: 'MOBILE_PHONE', title: '手机号', sort: true }
+                    , { field: 'DEPT_NAME', title: '部门名称', sort: true }
+                    , { field: 'POST_NAME', title: '岗位名称', sort: true }
+                    //, { field: 'TEAM_NAME', title: '班组名称', sort: true }
+                ]]
+            });
+            //监控部门选择
+            form.on('select(corpSelect)', function (data) {
+                GetDept(form);
+            });
+            //监控部门选择
+            form.on('select(deptSelect)', function (data) {
+                Refresh();
+            });
+            //监听单选框变更
+            form.on('radio(radio)', function (data) {
+                if (data.value == "未选") {
+                    $("#btnAllot").css({ "display": "" });
+                    $("#btnDel").css({ "display": "none" });
+                } else {
+                    $("#btnAllot").css({ "display": "none" });
+                    $("#btnDel").css({ "display": "" });
+                }
+                Refresh($("#deptSelect option:selected").val());
+            });
+        });
+        //刷新
+        function Refresh() {
+            table.reload('table1', {
+                url: '@Url.Action("GetUser", "Role")',
+                where: {
+                    user_name: $("#user_name").val(),
+                    status: $('#Status input[name="radioName"]:checked ').val(),
+                    dept_id: $("#deptSelect option:selected").val(),
+                    corp_id: $("#corpSelect option:selected").val(),
+                    role_id:'@ViewBag.role_id'
+                },
+                method: 'Post',
+                page: {
+                    curr: 1
+                }
+            });
+        }
+        //获取部门
+        function GetDept(form) {
+            document.getElementById("deptSelect").options.length = 0;
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                url: '@Url.Action("GetDeptByCorp", "Public")',
+                data: {
+                    corp_id: $('select[name="Corp"] option:selected').val()
+                },
+                success: function (res) {
+                    if (res.code == "0") {
+                        $('#deptSelect').empty();
+                        $('#deptSelect').append('<option value="-99">全部</option>');
+                        var dept_id = "";
+                        $.each(res.data, function (index, item) {
+                            if ('@ViewBag.dept_id' == item.DEPT_ID) {
+                                dept_id = item.DEPT_ID;
+                            } else {
+                                dept_id = item.DEPT_ID;
+                            }
+                            $('#deptSelect').append('<option value="' + item.DEPT_ID + '">' + item.DEPT_NAME + '</option>');
+                        });
+                        $("#deptSelect").val(dept_id);
+                        form.render('select');
+                    } else {
+                        parent.layer.msg("获取部门信息接口出错，请联系管理员", {
+                            icon: 5
+                        });
+                    }
+                },
+                error: function (res) {
+                    parent.layer.msg("获取部门信息接口出错，请联系管理员", {
+                        icon: 5
+                    });
+                }
+            });
+        }
+        //移除
+        function btnRemove() {
+            var checkStatus = table.checkStatus('table1');
+            var obj = [];
+            if (checkStatus.data.length > 0) {
+                layer.confirm('确认移除已勾选的用户吗？', { btn: ['是', '否'], icon: 3, title: '提示' }, function (index) {
+                    for (var i = 0; i < checkStatus.data.length; i++) {
+                        obj.push(checkStatus.data[i].USER_ID);
+                    }
+                    $.ajax({
+                        type: 'post',
+                        dataType: 'json',
+                        traditional: true,
+                        url: '@Url.Action("Remove", "Role")',
+                        data: {
+                            role_id: '@ViewBag.role_id',
+                            user_id: obj
+                        },
+                        success: function (res) {
+                            if (res.code == "200") {
+                                var index = parent.layer.getFrameIndex(window.name);
+                                //再执行关闭
+                                parent.layer.close(index);
+                                parent.Refresh();
+                                parent.layer.msg(res.msg, {
+                                    icon: 6
+                                });
+                            } else {
+                                layer.msg(res.msg, {
+                                    icon: 5
+                                });
+                            }
+                        },
+                        error: function (res) {
+                            layer.msg("接口出错，请联系管理员", {
+                                icon: 5
+                            });
+                        }
+                    });
+                });
+            } else {
+                layer.msg('请先选中数据', {
+                    icon: 5
+                });
+            }
+        }
+        //分配
+        function btnCommit() {
+            var checkStatus = table.checkStatus('table1');
+            var obj = [];
+            if (checkStatus.data.length > 0) {
+                layer.confirm('确认分配已勾选的用户吗？', { btn: ['是', '否'], icon: 3, title: '提示' }, function (index) {
+                    for (var i = 0; i < checkStatus.data.length; i++) {
+                        obj.push(checkStatus.data[i].USER_ID);
+                    }
+                    $.ajax({
+                        type: 'post',
+                        dataType: 'json',
+                        traditional: true,
+                        url: '@Url.Action("Allot", "Role")',
+                        data: {
+                            role_id: '@ViewBag.role_id',
+                            user_id: obj
+                        },
+                        success: function (res) {
+                            if (res.code == "200") {
+                                var index = parent.layer.getFrameIndex(window.name);
+                                //再执行关闭
+                                parent.layer.close(index);
+                                parent.Refresh();
+                                parent.layer.msg(res.msg, {
+                                    icon: 6
+                                });
+                            } else {
+                                layer.msg(res.msg, {
+                                    icon: 5
+                                });
+                            }
+
+                        },
+                        error: function (res) {
+                            layer.msg("接口出错，请联系管理员", {
+                                icon: 5
+                            });
+                        }
+                    });
+                });
+            } else {
+                layer.msg('请先选中数据', {
+                    icon: 5
+                });
+            }
+        }
+        $(document).ready(function () {
+            $("#btnAllot").css({ "display": "" });
+            $("#btnDel").css({ "display": "none" });
+            $("body").keydown(function () {
+                if (event.keyCode == "13") {//keyCode=13是回车键
+                    Refresh();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,310 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>节点编辑</title>
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <script src="~/layui/layui.js"></script>
+    <link href="~/layui/css/layui.css" rel="stylesheet" />
+    <script src="~/js/do_function.js"></script>
+</head>
+<body>
+    <div class="layui-form" style="text-align:center;">
+        <input type="hidden" hidden="hidden" id="tjr" />
+        @*<input type="hidden" hidden="hidden" id="sjgw" />*@
+        <br />
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">节点名称</label>
+                <div class="layui-input-inline">
+                    <label class="layui-form-label" id="node_name"></label>
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label">查看页面</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="show_page" placeholder="请输入查看页面">
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">审批人(直取)</label>
+                <div class="layui-input-inline">
+                    <input id="person" lay-verify="" class="layui-input" title="" placeholder="单击弹出审批人选择" onfocus="show_person()" />
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label">审批人部门</label>
+                <div class="layui-input-inline">
+                    <select id="appr_person_dept" lay-verify="" lay-search></select>
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-form-item">            
+            <div class="layui-inline">
+                <label class="layui-form-label">取于提交人</label>
+                <div class="layui-input-inline">
+                    <input type="checkbox" id="appr_if_confirm_person" name="appr_if_confirm_person" lay-filter="appr_if_confirm_person" lay-skin="switch" lay-text="是|否">
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label"></label>
+                <div class="layui-input-inline">
+                </div>
+            </div>
+            @*<div class="layui-inline">
+            <label class="layui-form-label">审批人岗位</label>
+            <div class="layui-input-inline">
+                <select id="appr_person_post" lay-verify="" lay-search></select>
+            </div>
+        </div>*@
+            @*<div class="layui-inline">
+            <label class="layui-form-label">审批人班组</label>
+            <div class="layui-input-inline">
+                <input id="team" lay-verify="" class="layui-input" title="" placeholder="单击弹出班组选择" onfocus="show_team()" />
+            </div>
+        </div>*@
+        </div>
+        @*<div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">审批人岗位</label>
+                <div class="layui-input-inline">
+                    <select id="appr_person_post" lay-verify="" lay-search></select>
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label">上级岗位</label>
+                <div class="layui-input-inline">
+                    <input type="checkbox" id="appr_if_confirm_highlevel_post" name="appr_if_confirm_highlevel_post" lay-filter="appr_if_confirm_highlevel_post" lay-skin="switch" lay-text="是|否">
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label"></label>
+                <div class="layui-input-inline">
+                </div>
+            </div>
+        </div>*@
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">PLSQL存储过程</label>
+            <div class="layui-input-block">
+                <input type="text" class="layui-input" id="plsql_proc" placeholder="请输入PLSQL存储过程">
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">审批人(SQL自定义)</label>
+            <div class="layui-input-block">
+                <textarea placeholder="请输入sql" class="layui-textarea" id="appr_person_sql"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">审批人账号</label>
+            <div class="layui-input-block">
+                <textarea placeholder="如：'123456','987654'" class="layui-textarea" id="appr_person_code"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">审批人部门(SQL自定义)</label>
+            <div class="layui-input-block">
+                <textarea placeholder="请输入sql" class="layui-textarea" id="appr_person_dept_sql"></textarea>
+            </div>
+        </div>
+        @*<div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">审批人班组(SQL自定义)</label>
+            <div class="layui-input-block">
+                <textarea placeholder="请输入sql" class="layui-textarea" id="appr_person_team_sql"></textarea>
+            </div>
+        </div>*@
+        <div class="layui-form-item  layui-form-text">
+            <label class="layui-form-label">审批人岗位(SQL自定义)</label>
+            <div class="layui-input-block">
+                <textarea placeholder="请输入sql" class="layui-textarea" id="appr_person_post_sql"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div align="center">
+                <button class="layui-btn" id="btnCommit" lay-submit="" lay-filter="btnCommit">保存</button>
+                &nbsp;
+                <button class="layui-btn layui-btn-danger" onclick="btnClose()">关闭</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        function btnClose() {
+            var index = parent.layer.getFrameIndex(window.name);
+            parent.layer.close(index);
+        }
+        var layer; var form;
+        layui.use(['table', 'form'], function () {
+            form = layui.form, layer = layui.layer;
+            //DropDowmRender(form, "appr_person", '@Url.Action("", "Public")');
+            //DropDowmRender(form, "appr_person_team", '@Url.Action("", "Public")');
+            GetNodePro();
+
+            form.on('switch(appr_if_confirm_person)', function (obj) {
+                if (obj.elem.checked == true) {
+                    tjr.value = 1;
+                } else {
+                    tjr.value = 0;
+                }
+            });
+
+            //form.on('switch(appr_if_confirm_highlevel_post)', function (obj) {
+            //    if (obj.elem.checked == true) {
+            //        sjgw.value = 1;
+            //    } else {
+            //        sjgw.value = 0;
+            //    }
+            //});
+            //保存
+            form.on('submit(btnCommit)', function (data) {
+                var data = {
+                    flowid: '@ViewBag.flowid',
+                    nodecode: '@ViewBag.node_code',
+                    type: "node",
+                    page: ($("#show_page").val() == null ? "" : $("#show_page").val()),
+                    person: (document.getElementById("person").title == null ? "" : document.getElementById("person").title),
+                    post: ($("#appr_person_post").val() == null ? "" : $("#appr_person_post").val()),
+                    rect: "",
+                    dept: ($("#appr_person_dept").val() == null ? "" : $("#appr_person_dept").val()),
+                    //team: (document.getElementById("team").title == null ? "" : document.getElementById("team").title),
+                    personSql: ($("#appr_person_sql").val() == null ? "" : $("#appr_person_sql").val()),
+                    plsql: ($("#plsql_proc").val() == null ? "" : $("#plsql_proc").val()),
+                    tjr: (tjr.value == null ? "0" : tjr.value),
+                    deptSql: ($("#appr_person_dept_sql").val() == null ? "" : $("#appr_person_dept_sql").val()),
+                    //teamSql: ($("#appr_person_team_sql").val() == null ? "" : $("#appr_person_team_sql").val()),
+                    //sjgw: (sjgw.value == null ? "0" : sjgw.value),
+                    postSql: ($("#appr_person_post_sql").val() == null ? "" : $("#appr_person_post_sql").val()),
+                    personCode: ($("#appr_person_code").val() == null ? "" : $("#appr_person_code").val())
+                };
+                $.ajax({
+                    type: 'post',
+                    dataType: 'json',
+                    url: '@Url.Action("SaveNodePro", "WorkFlow")',
+                    data: data,
+                    success: function (res) {
+                        if (res.code == "200") {
+                            layer.msg(res.msg, { icon: 6 });
+                        } else {
+                            layer.msg(res.msg, {
+                                icon: 5
+                            });
+                        }
+                    },
+                    error: function (res) {
+                        layer.msg("数据接口出错，请联系管理员", {
+                            icon: 5
+                        });
+                    }
+                });
+            });
+        });
+
+        $(document).ready(function () {
+            $("#node_name").html('@ViewBag.node_name');
+        });
+
+        function GetNodePro() {
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                url: '@Url.Action("GetNodePro", "WorkFlow")',
+                data:{flowid:'@ViewBag.flowid',nodecode:'@ViewBag.node_code'},
+                success: function (res) {
+                    if (res.code == "0") {
+                        $("#show_page").val(res.data[0].VIEW_PAGE);
+                        $("#plsql_proc").val(res.data[0].PLSQLPRO);
+                        $("#person").val(res.data[0].APPR_PERSON_NAME);
+                        document.getElementById("person").title = res.data[0].APPR_PERSON;
+                        $("#plsql_proc").val(res.data[0].PLSQLPRO);
+                        $("#appr_person_sql").val(res.data[0].COL_SET);
+                        $("#appr_person_code").val(res.data[0].PERSON_CODE);
+                        $("#appr_person_dept_sql").val(res.data[0].DEPT_SQL);
+                        //$("#appr_person_team_sql").val(res.data[0].TEAM_SQL);
+                        $("#appr_person_post_sql").val(res.data[0].POST_SQL);
+                        $("#appr_person_code").val(res.data[0].PERSON_CODE);
+                        $("#appr_person").val(res.data[0].POST_SQL);
+                        //$("#appr_person_team").val(res.data[0].PERSON_CODE);
+                        if (res.data[0].SFTJR == "1") {
+                            $("#appr_if_confirm_person").prop("checked", true);
+                            tjr.value = '1';
+                            //form.render('checkbox');
+                        } else {
+                            $("#appr_if_confirm_person").prop("checked", false); tjr.value = '0';
+                        }
+                        //if (res.data[0].SFSJGW == "1") {
+                        //    $("#appr_if_confirm_highlevel_post").prop("checked", true);
+                        //    sjgw.value = '1';
+                        //} else {
+                        //    $("#appr_if_confirm_highlevel_post").prop("checked", false); sjgw.value = '0';
+                        //}
+                        form.render('checkbox');
+                        DropDowmRender();
+                        //DropDowmRender(form, "appr_person_dept", '@Url.Action("GetDept", "Public")', res.data[0].DEPT_ID);
+                        //DropDowmRender(form, "appr_person_post", '@Url.Action("GetPost", "Public")', res.data[0].APPR_POST);
+
+
+                    } else {
+                        parent.layer.msg("加载类型信息出错，请联系管理员", {
+                            icon: 5
+                        });
+                    }
+                },
+                error: function (res) {
+                    parent.layer.msg("加载类型信息出错，请联系管理员", {
+                        icon: 5
+                    });
+                }
+            });
+        }
+        function DropDowmRender() {
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                url: '@Url.Action("GetDept", "Public")',
+                success: function (res) {
+                    if (res.code == "0") {
+                        $("#appr_person_dept").append('<option value="">不选择</option>');
+                        $.each(res.data, function (index, item) {
+                            $("#appr_person_dept").append('<option value="' + item.ID + '">' + item.NAME + '</option>');
+                        });
+                        $("#appr_person_dept").val();
+                        form.render('select');
+                    } else {
+                        parent.layer.msg("加载数据出错，请联系管理员", {
+                            icon: 5
+                        });
+                    }
+                },
+                error: function (res) {
+                    parent.layer.msg("加载数据出错，请联系管理员", {
+                        icon: 5
+                    });
+                }
+            });
+        }
+        function show_person() {
+            var url = '@Url.Action("ChooseSinglePerson", "Public")';
+            layer.open({
+                type: 2,
+                area: ['750px', '450px'],
+                title: "选择人员",
+                content: url
+            });
+            //win_show(layer, url, "选择人员", document.documentElement.clientWidth * 0.8, document.documentElement.clientHeight * 0.8);
+        }
+
+        @*function show_team() {
+            var url = '@Url.Action("ChooseTeamByDept", "Public")';
+            win_show(layer,url,"选择班组",document.documentElement.clientWidth*0.3,document.documentElement.clientHeight*0.8);
+        }*@
+    </script>
+</body>
+</html>

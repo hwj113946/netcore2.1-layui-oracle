@@ -1,0 +1,172 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>CodeGenerator</title>
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <script src="~/layui/layui.js"></script>
+    <link href="~/layui/css/layui.css" rel="stylesheet" />
+</head>
+<body>
+    <form class="layui-form">
+        <br />
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">数据表</label>
+                <div class="layui-input-inline">
+                    <select name="Table" id="tableSelect" lay-verify="" lay-filter="tableSelect" lay-search></select>
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label">控制器名称</label>
+                <div class="layui-input-inline">
+                    <input class="layui-input" id="ControllerName" type="text" autocomplete="off" />
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">     
+            <div class="layui-inline">
+                <label class="layui-form-label">Api控制器名称</label>
+                <div class="layui-input-inline">
+                    <input class="layui-input" id="ApiControllerName" type="text" autocomplete="off" />
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label">Model名称</label>
+                <div class="layui-input-inline">
+                    <input class="layui-input" id="ModelName" type="text" autocomplete="off" />
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">主界面名称</label>
+                <div class="layui-input-inline">
+                    <input class="layui-input" id="ViewName" type="text" autocomplete="off" />
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label">编辑界面名</label>
+                <div class="layui-input-inline">
+                    <input class="layui-input" id="EditViewName" type="text" autocomplete="off" />
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <a class="layui-btn" onclick="Generator()">确定</a>
+            </div>
+        </div>
+    </form>
+    <script>
+        var table; var ins, form, layer;
+        layui.use(['table', 'form'], function () {
+            table = layui.table, form = layui.form, layer = layui.layer;
+            form.render();
+            GetDBTable(form);
+            form.on('select(tableSelect)', function (data) {
+                Change();
+            });
+
+        });
+        function Change() {
+            var value = $("select[name=Table").val();
+            var name = transformStr("_" + value);
+            $("#ControllerName").val(name);
+            $("#ApiControllerName").val(transformStr("_API_" + value));
+            $("#ModelName").val(value);
+            $("#ViewName").val(name);
+            $("#EditViewName").val(transformStr("_Edit_" + value));
+        }
+
+        //转驼峰命名
+        function transformStr(str) {
+            var newStr = '';
+            var arr = str.toLowerCase().split('_');//split是分隔字符串
+            for (var i = 0; i < arr.length; i++) {
+                var s = arr[i];
+                if (i == 0) {
+                    newStr += s;
+                } else {
+                    newStr += s.substr(0, 1).toLocaleUpperCase();
+                    newStr += s.substr(1, s.length - 1);
+                }
+            }
+            return newStr;
+        }
+
+        function GetDBTable(form) {
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                url: '@Url.Action("GetCurrentUserDataTable", "Public")',
+                success: function (res) {
+                    if (res.code == "0") {
+                        var i = "";
+                        $.each(res.data, function (index, item) {
+                            if (index == 0) i = item.TABLE_NAME;
+                            $('#tableSelect').append('<option value="' + item.TABLE_NAME + '">' + item.TABLE_NAME +"【"+ item.COMMENTS +"】"+ '</option>');
+                        });
+
+                        $("#tableSelect").val(i);
+                        form.render('select');
+                    } else {
+                        layer.msg(res.msg, {
+                            icon: 5
+                        });
+                    }
+                },
+                error: function (res) {
+                    layer.msg("加载数据表出错，请联系管理员", {
+                        icon: 5
+                    });
+                }
+            });
+        }
+
+        function Generator() {
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                url: '@Url.Action("Generator", "CodeGenerator")',
+                data: {
+                    TableName: $('select[name="Table"] option:selected').val(),
+                    ControllerName: $("#ControllerName").val(),
+                    ApiControllerName: $("#ApiControllerName").val(),
+                    ModelName: $("#ModelName").val(),
+                    ViewName: $("#ViewName").val(),
+                    EditViewName: $("#EditViewName").val()
+                },
+                success: function (res) {
+                    if (res.code == 200) {
+                        layer.msg(res.msg, {
+                            icon: 6
+                        });
+                    } else {
+                        layer.msg(res.msg, {
+                            icon: 5
+                        });
+                    }
+                },
+                error: function (res) {
+                    layer.msg("请求出错，请联系管理员", {
+                        icon: 5
+                    });
+                }
+            });
+        }
+        $(document).ready(function () {
+            setTimeout( function () {
+                Change();
+            },100);
+           
+        });
+    </script>
+</body>
+</html>

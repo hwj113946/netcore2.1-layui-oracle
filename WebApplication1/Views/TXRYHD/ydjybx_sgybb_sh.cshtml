@@ -1,0 +1,230 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>ydjybx_sgybb</title>
+    <link href="~/layui/css/layui.css" rel="stylesheet" />
+    <script src="~/layui/layui.js"></script>
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <script src="~/js/do_function.js"></script>
+</head>
+<body>
+    <form class="layui-form">
+        <br />
+        <div>
+            <div class="layui-inline"></div>
+            <div class="layui-inline">
+                <div class="layui-input-inline">
+                    <input type="text" id="person_name" lay-verify="" placeholder="请输入姓名" class="layui-input" />
+                </div>
+            </div>
+            <div class="layui-input-inline" id="Status">
+                <input type="radio" name="radioName" value="3" lay-filter="radio" title="待复核" checked="" class="">
+                <input type="radio" name="radioName" value="4" lay-filter="radio" title="审核通过" class="">
+                <input type="radio" name="radioName" value="5" lay-filter="radio" title="退回" class="">
+            </div>
+            <div class="layui-inline">
+                <a class="layui-btn layui-btn-sm layui-btn-primary" onclick="Refresh()" style="text-decoration:none;">查询</a>
+            </div>
+            <div class="layui-inline">
+                <a class="layui-btn layui-btn-sm" onclick="Commit()" id="btnCommit" style="text-decoration:none;">审核通过</a>
+            </div>
+            <div class="layui-inline">
+                <a class="layui-btn layui-btn-sm layui-btn-danger" onclick="Back()" id="btnBack" style="text-decoration:none;">退回</a>
+            </div>
+            <table id="table2" lay-filter="table2"></table>
+        </div>
+    </form>
+    <form class="layui-form" id="test" style="display:none">
+        <br />
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">退回原因</label>
+            <div class="layui-input-block">
+                <textarea lay-verify="required" id="backReason" placeholder="请输入退回原因" class="layui-textarea"></textarea>
+            </div>
+        </div>
+    </form>
+    <button id="div">提交</button>
+
+    <script>
+         var table, ins, layer, form;
+        layui.use(['table', 'form'], function () {
+            table = layui.table;
+            layer = layui.layer;
+            form = layui.form;
+            //右表格渲染
+            table.render({
+                elem: '#table2'
+                , height: document.documentElement.clientHeight - 80
+                , url: '@Url.Action("GetYdjybxByStatusYBB", "Txryhd")',
+                where: {
+                    status: $('#Status input[name="radioName"]:checked ').val(),
+                    person_name: $("#person_name").val()
+                }, method: 'Post'
+                , page: true //开启分页
+                , limit: 20
+                , limits: [20, 30, 40, 50]
+                , cols: [[ //表头
+                    { type: 'checkbox', fixed: 'left' }
+                    , { field: 'AFR_ID', title: 'AFR_ID', sort: true, hide: true }
+                    , { field: 'PERSON_ID', title: 'PERSON_ID', sort: true, hide: true }
+                    , { field: 'FLOW_NO', title: '流程号', sort: true, width: 130 }
+                    , { field: 'FLOW_TYPE', title: '流程类型', sort: true, width: 150 }
+                    , { field: 'PERSON_NAME', title: '姓名', sort: true, width: 120 }
+                    , { field: 'ID_CARD_NUMBER', title: '身份证号码', sort: true, width: 170 }
+                    , { field: 'ATTRIBUTE2', title: '接收时间', sort: true, width: 170 }
+                    , { field: 'TRAN_DATE', title: '处理时间', sort: true, width: 150 }
+                    , { field: 'TRAN_PERSON', title: '处理人', sort: true, width: 120 }
+                    , { field: 'FAIL_REASON', title: '退回原因', sort: true, width: 180 }
+                    , { field: 'STATUS', title: '状态', sort: true, width: 150 }
+                ]], done: function () {
+                    var val = $('#Status input[name="radioName"]:checked ').val();
+                    if (val == "3") {
+                        $("#btnCommit").css({ "display": "" });
+                        $("#btnBack").css({ "display": "" });
+                    } else {
+                        $("#btnCommit").css({ "display": "none" });
+                        $("#btnBack").css({ "display": "none" });
+                    }
+                }
+            });
+            //监听单选框变更
+            form.on('radio(radio)', function (data) {
+                if (data.value == "3") {
+                    $("#btnCommit").css({ "display": "" });
+                    $("#btnBack").css({ "display": "" });
+                } else {
+                    $("#btnCommit").css({ "display": "none" });
+                    $("#btnBack").css({ "display": "none" });
+                }
+                Refresh();
+            });
+        });
+        //右刷新
+        function Refresh() {
+            table.reload('table2', {
+                url: '@Url.Action("GetYdjybxByStatusYBB", "Txryhd")',
+                where: {
+                    status: $('#Status input[name="radioName"]:checked ').val(),
+                    person_name: $("#person_name").val()
+                },
+                method: 'Post',
+                page: {
+                    curr: 1
+                }
+            });
+        }
+        //退回
+        function Back() {
+            var checkState = table.checkStatus('table2');
+            if (checkState.data.length > 0) {
+                layer.open({
+                    type: 1,
+                    area: ['650px', '250px'],
+                    title: '请输入退回原因'
+                    , content: $("#test"),
+                    shade: 0,
+                    btn: ['提交', '取消']
+                    , btn1: function (index, layero) {
+                        var obj = [];
+                        var ii = 0;
+                        layer.confirm('确认退回到接收票据材料节点吗？', { btn: ['是', '否'], icon: 3, title: '提示' }, function (index) {
+                            for (var i = 0; i < checkState.data.length; i++) {
+                                obj.push(checkState.data[i].AFR_ID);
+                            }
+                            ii++;
+                            if (ii == 1) {
+                                $.ajax({
+                                    type: 'post',
+                                    dataType: 'json',
+                                    traditional: true,
+                                    url: '@Url.Action("BackPjjs_ydjybx", "Txryhd")',
+                                    data: {
+                                        id: obj,
+                                        backReason: $("#backReason").val()
+                                    },
+                                    success: function (res) {
+                                        if (res.code == "200") {
+                                            layer.msg(res.msg, { icon: 6 });
+                                            Refresh();
+                                        } else {
+                                            layer.msg(res.msg, { icon: 5 });
+                                        }
+                                        layer.closeAll();
+                                        return false;
+                                    },
+                                    error: function () {
+                                        layer.msg("接口出错，请联系管理员", { icon: 5 });
+                                        return false;
+                                    }
+                                });
+                            }
+                        });
+                        return false;
+                    },
+                    btn2: function (index, layero) {
+                        $("#backReason").val("");
+                        layer.closeAll();
+                        return false;
+                    },
+                    cancel: function (layero, index) {
+                        $("#backReason").val("");
+                        layer.closeAll();
+                    }
+
+                });
+            } else {
+                layer.msg("请勾选一行数据后再操作", { icon: 5 });
+            }
+        }
+        //复核通过
+        function Commit() {
+            var checkState = table.checkStatus('table2');
+            if (checkState.data.length > 0) {
+                var obj = [];
+                if (checkState.data[0].STATUS == "韶钢医保办待审核") {
+                    var ii = 0;
+                    layer.confirm('确认审核通过且提交给市医保局吗？', { btn: ['是', '否'], icon: 3, title: '提示' }, function (index) {
+                        for (var i = 0; i < checkState.data.length; i++) {
+                            obj.push(checkState.data[i].AFR_ID);
+                        }
+                        ii++;
+                        if (ii == 1) {
+                            $.ajax({
+                                type: 'post',
+                                dataType: 'json',
+                                traditional: true,
+                                url: '@Url.Action("CommitToSybj_ydjybx", "Txryhd")',
+                                data: {
+                                    id: obj
+                                },
+                                success: function (res) {
+                                    if (res.code == "200") {
+                                        layer.msg(res.msg, { icon: 6 });
+                                        Refresh();
+                                    } else {
+                                        layer.msg(res.msg, { icon: 5 });
+                                    }
+                                },
+                                error: function () {
+                                    layer.msg("接口出错，请联系管理员", { icon: 5 });
+                                }
+                            });
+                        }                        
+                    });
+                } else {
+                    layer.msg("待复核状态的单据才能发起提交", { icon: 5 });
+                }
+            } else {
+                layer.msg("请勾选数据后再操作", { icon: 5 });
+            }
+        }
+    </script>
+</body>
+</html>

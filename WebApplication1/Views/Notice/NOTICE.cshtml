@@ -1,0 +1,152 @@
+@{Layout=null;}
+ <!DOCTYPE html>
+<html>
+<head >
+<meta name="viewport" content="width=device-width" />
+<title>NOTICE</title>
+<script src="~/js/jquery-3.2.1.min.js"></script>
+<script src="~/js/button.js"></script>
+<link href="~/layui/css/layui.css" rel="stylesheet" />
+<script src="~/layui/layui.js"></script>
+</head>
+<body>
+    <form class="layui-form">
+        <br />
+        <div id="button">
+            <div class="layui-inline"></div>
+            <div class="layui-inline">
+                <div class="layui-input-inline">
+                    <input type="text" id="search_text" lay-verify="" placeholder="请输入标题" class="layui-input" />
+                </div>
+            </div>
+        </div>
+        <table id="table1" lay-filter="table1"></table>
+    </form>
+    <script>
+        var table,layer,form,laydate;
+        layui.use(['table', 'form', 'laydate'], function () {
+            table = layui.table, layer = layui.layer, form = layui.form, laydate = layui.laydate;
+            form.render();
+            table.render({
+                elem: '#table1',
+                cellMinWidth: 120,
+                height: document.documentElement.clientHeight - 60,
+                url: '@Url.Action("GetNoticeForPC", "NOTICE")',
+                where: { search_text: '' },
+                method: 'Get',
+                page: true,
+                limit: 20,
+                limits: [20, 30, 50],
+                cols: [[
+                    { type: 'checkbox', fixed: 'left' }
+                    , { field: 'NOTICE_ID', title: '', hide: true }
+                    , { field: 'TITLE', title: '标题', sort: true }
+                    , { field: 'NICKNAME', title: '昵称/尊称', sort: true }
+                    , { field: 'MESSAGE', title: '通知内容', sort: true }
+                    , { field: 'NOTICE_DATE', title: '落款时间', sort: true }
+                    , { field: 'COMPANY', title: '落款公司/人', sort: true }
+                    , { field: 'STATUS', title: '状态', sort: true }
+                ]], loading: true
+            });
+        });
+        function Refresh() {
+            table.reload("table1", {
+                url: '@Url.Action("GetNoticeForPC", "NOTICE")',
+                where: {
+                    search_text: $("#search_text").val(),
+                },
+                method: "Get",
+                page: { curr: 1 }
+            });
+        }
+        function btnAdd() {
+            var url = '@Url.Action("NOTICE_EDIT","NOTICE")' + '?Rowid=&status=add';
+            layer.open({ type: 2, area: ['800px', '500px'], title: '新增', content: url });
+        }
+        function btnEdit() {
+            var checkStatus = table.checkStatus('table1');
+            if (checkStatus.data.length > 0) {
+                if (checkStatus.data.length > 1) {
+                    layer.msg("编辑只能勾选一行数据", { icon: 5 }); return;
+                }
+                var url = '@Url.Action("NOTICE_EDIT","NOTICE")' + '?Rowid=' + checkStatus.data[0].NOTICE_ID + '&status=update';
+                layer.open({ type: 2, area: ['800px', '500px'], title: '编辑', content: url });
+            }
+            else {
+                layer.msg('请先勾选数据', { icon: 5 });
+            }
+        }
+        function btnClose() {
+            var checkStatus = table.checkStatus('table1');
+            if (checkStatus.data.length > 0) {
+                var obj = [];
+                layer.confirm('是否关闭通知？', { btn: ['是', '否'], icon: 3, title: '提示' }, function (index) {
+                    for (var i = 0; i < checkStatus.data.length; i++) {
+                        obj.push(checkStatus.data[i].NOTICE_ID);
+                    }
+                    $.ajax({
+                        type: 'post',
+                        dataType: 'json',
+                        traditional: true,
+                        url: '@Url.Action("Close", "NOTICE")',
+                        data: { id: obj },
+                        success: function (res) {
+                            if (res.code == 200) {
+                                layer.msg(res.msg, { icon: 6 }); Refresh();
+                            }
+                            else {
+                                layer.msg(res.msg, { icon: 5 });
+                            }
+                        }
+                        , error: function () {
+                            layer.msg("接口出错，请联系管理员", { icon: 5 });
+                        }
+                    });
+                });
+            } else { layer.msg('请先勾选数据', { icon: 5 }); }
+        }
+        function btnRelease() {
+            var checkStatus = table.checkStatus('table1');
+            if (checkStatus.data.length > 0) {
+                var obj = [];
+                layer.confirm('是否发布通知？', { btn: ['是', '否'], icon: 3, title: '提示' }, function (index) {
+                    for (var i = 0; i < checkStatus.data.length; i++) {
+                        obj.push(checkStatus.data[i].NOTICE_ID);
+                    }
+                    $.ajax({
+                        type: 'post',
+                        dataType: 'json',
+                        traditional: true,
+                        url: '@Url.Action("Release", "NOTICE")',
+                        data: { id: obj },
+                        success: function (res) {
+                            if (res.code == 200) {
+                                layer.msg(res.msg, { icon: 6 }); Refresh();
+                            }
+                            else {
+                                layer.msg(res.msg, { icon: 5 });
+                            }
+                        }
+                        , error: function () {
+                            layer.msg("接口出错，请联系管理员", { icon: 5 });
+                        }
+                    });
+                });
+            } else { layer.msg('请先勾选数据', { icon: 5 }); }
+        }
+
+        function btnExport() {
+            var _form = document.createElement("form");
+            document.body.appendChild(_form);
+            _form.action = '@Url.Action("GetNOTICEForExport", "NOTICE")';
+            _form.data = '';
+            _form.method = 'post';
+            var _input = document.createElement("input");
+            _input.setAttribute("name", "search_text");
+            _input.setAttribute("type", "hidden");
+            _input.setAttribute("value", $("#search_text").val());
+            _form.appendChild(_input); _form.submit();
+        }
+    </script>
+</body>
+ </html>

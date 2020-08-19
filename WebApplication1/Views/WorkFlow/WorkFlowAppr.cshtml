@@ -1,0 +1,538 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>审批</title>
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <script src="~/layui/layui.js"></script>
+    <link href="~/layui/css/layui.css" rel="stylesheet" />
+</head>
+<body>
+    <form class="layui-form">
+        <br />
+        <div class="layui-form-item">
+            <label class="layui-form-label"></label>
+            <div class="layui-inline">
+                <a class="layui-btn layui-btn-sm layui-btn-disabled" id="btnCommit" onclick="btnCommit()">提交</a>
+            </div>
+            <div class="layui-inline">
+                <a class="layui-btn layui-btn-sm layui-btn-disabled layui-btn-danger" id="btnTakeBack" onclick="btnTakeBack()">收回</a>
+            </div>
+            <div class="layui-inline">
+                <a class="layui-btn layui-btn-sm layui-btn-disabled" id="btnSendRead" onclick="btnSendRead()">传阅</a>
+            </div>
+            <div class="layui-inline">
+                <a class="layui-btn layui-btn-sm layui-btn-disabled layui-btn-danger" id="btnBack" onclick="btnBack()">退回</a>
+            </div>
+            <div class="layui-inline">
+                <a class="layui-btn layui-btn-sm layui-btn-normal layui-btn-disabled" id="btnPrint" onclick="btnPrint()">打印流程</a>
+            </div>
+        </div>
+        <br />
+        <div class="layui-form-item">
+            <label class="layui-form-label">标题</label>
+            <div class="layui-input-block">
+                <a id="title"  class="layui-form-label-col" style="color:skyblue;text-decoration:underline;"></a>
+                <input class="layui-input" id="tb_DocName" type="text" autocomplete="off" />
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">说明</label><div class="layui-input-block">
+                <textarea class="layui-textarea" id="am_Docdes" placeholder="限200字" maxlength="200"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">发布单位</label><div class="layui-input-inline">
+                <input class="layui-input" type="text" id="l_dw" autocomplete="off" readonly />
+            </div>
+            <label class="layui-form-label">发布时间</label><div class="layui-input-inline">
+                <input class="layui-input" id="l_sj" type="text" autocomplete="off" readonly />
+            </div>
+            <label class="layui-form-label">发布人</label><div class="layui-input-inline">
+                <input class="layui-input" id="l_fbr" type="text" autocomplete="off" readonly />
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">联系电话</label><div class="layui-input-block">
+                <input class="layui-input" id="l_lxdh" type="text" autocomplete="off" readonly />
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">审批意见</label><div class="layui-input-block">
+                <textarea class="layui-textarea" id="am_spyj" placeholder="限1000字" maxlength="1000"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item" id="zdyry">
+            <label class="layui-form-label">已定义可选审批人</label><div class="layui-input-block" id="div_person"></div>
+        </div>
+        <div class="layui-form-item" id="next">
+            <label class="layui-form-label">下一审批人</label><div class="layui-input-inline">
+                <input class="layui-input" id="person" type="text" placeholder="单击弹出审批人选择" autocomplete="off" readonly onclick="show_person()" />
+            </div>
+            <label class="layui-form-label">下一环节</label><div class="layui-input-inline">
+                <input class="layui-input" id="Label7" type="text" autocomplete="off" readonly />
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">审批节点</label><div class="layui-input-block">
+                <iframe id="appr_node" width="98%" height="60" marginheight="0" marginwidth="0"></iframe>
+            </div>
+        </div>
+        <table class="layui-table" lay-size="sm">
+            <colgroup>
+                <col width="5%" />
+                <col width="10%" />
+                <col width="10%" />
+                <col width="10%" />
+                <col width="55%" />
+                <col width="10%" />
+            </colgroup>
+            <thead>
+                <tr>
+                    <th style="text-align:center;">序号</th>
+                    <th style="text-align:center;">部门</th>
+                    <th style="text-align:center;">审批人</th>
+                    <th style="text-align:center;">状态</th>
+                    <th style="text-align:center;">审批意见</th>
+                    <th style="text-align:center;">审批时间</th>
+                </tr>
+            </thead>
+            <tbody id="appr_info"></tbody>
+        </table>
+    </form>
+    <form class="layui-form" id="test" style="display:none">
+        <br />
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">退回到</label>
+            <div class="layui-input-block">
+                <select name="Thr" id="thrSelect" lay-verify="" lay-filter="thrSelect" lay-search></select>
+            </div>
+        </div>
+    </form>
+    <script>
+        //获取退回人
+        function GetThr(form,data) {
+            $.each(data, function (index, item) {
+                $('#thrSelect').append('<option value="' + item.VALUE + '">' + item.TEXT + '</option>');
+            });
+            $("#thrSelect").val('-1');
+            form.render('select');
+        }
+        var layer; var form, result;
+        layui.use(['table', 'form'], function () {
+            form = layui.form, layer = layui.layer;
+            GetInfo();
+            form.render();
+        });
+        //选择下一审批人
+        function show_person() {
+            if (result.next_node_type == "end") {
+                layer.msg("下一节点为结束节点，不需要选人员", {icon:5}); return;
+            }
+            var url = '@Url.Action("ChooseSinglePerson", "Public")';
+            layer.open({
+                type: 2,
+                area: ['95%', '95%'],
+                title: "选择人员",
+                content: url
+            });
+        }
+
+        //创建人员单选框
+        function CreatePersonRadioButton() {
+             $.ajax({
+                type: 'post',
+                dataType: 'json',
+                url: '@Url.Action("GetPersonRadioButton", "WorkFlow")',
+                success: function (res) {
+                    if (res.code == "0") {
+                        $.each(res.data, function (index, item) {
+                            $("#div_person").append('<input type="radio" name="person" value="'+item.PERSON_ID+'" title="'+item.PERSON_NAME+'">');
+                        });
+                    } else {
+                        layer.msg(res.msg, {
+                            icon: 5
+                        });
+                    }
+                },
+                error: function (res) {
+                    layer.msg("请求接口出错，请联系管理员", {
+                        icon: 5
+                    });
+                }
+            });
+        }
+
+        function show_msg() {
+            layer.msg("审批流类型设置中未设置显示界面", {icon:5});
+        }
+        //弹出界面查看标链接界面
+        function win_show_title(url) {
+            layer.open({
+                type: 2,
+                area: ['95%', '95%'],
+                title: "查看",
+                content: url
+            });
+        }
+        //获取审批信息
+        function GetInfo() {
+            $.ajax({
+                type: 'get',
+                dataType: 'json',
+                data: {
+                    docid: '@ViewBag.docid',
+                    name: '@ViewBag.name',
+                    apprid: '@ViewBag.apprid',
+                    status: '@ViewBag.status',
+                    type: '@ViewBag.type',
+                    des: '@ViewBag.des'
+                },
+                url: '@Url.Action("GetInfo", "WorkFlow")',
+                success: function (res) {
+                    if (res.code == "0") {
+                        console.log(res);
+                        result = res;
+                        $("#tb_DocName").val(res.title_name);
+                        if ('@ViewBag.status' == "sp"||'@ViewBag.status'=="view") {
+                            $("#title").html(res.title_name);
+                            $('#title').attr('href', "javascript:win_show_title('"+res.doc_link+"')");
+                            $('#title').show();
+                            $("#tb_DocName").hide();
+                        } else {
+                            $('#title').hide();
+                            $("#tb_DocName").show();
+                            $("#tb_DocName").val(res.title_name);
+                        }
+                       
+                        if (res.doc_link != "") {
+                            $('#title').attr('href', "javascript:win_show_title('" + res.doc_link + "')");
+                        } else {
+                            $('#title').attr('href', "javascript:show_msg();");
+                        }
+                        $("#am_Docdes").val(res.doc_des);
+                        $("#l_dw").val(res.fbdw);
+                        $("#l_sj").val(res.fbsj);
+                        $("#l_fbr").val(res.fbr);
+                        $("#l_lxdh").val(res.lxdh);
+                        $("#Label7").val(res.nextnode);
+                        if (res.next_node_type == "") {
+                            $("#zdyry").css("display", "none");
+                            $("#next").css("display", "none");
+                        } else {
+                            if ('@ViewBag.status' == 'view') {
+                                $("#btnTakeBack").removeClass("layui-btn-disabled");
+                                $("#btnSendRead").removeClass("layui-btn-disabled");
+                            } else {
+                                if (res.btnBackEnable == true) {
+                                    $("#btnBack").removeClass("layui-btn-disabled");
+                                }
+                                if (res.btnCommitEnable == true) {
+                                    $("#btnCommit").removeClass("layui-btn-disabled");
+                                }
+                                //if (res.btnTakeBackEnable == true) {
+                                //    $("#btnTakeBack").removeClass("layui-btn-disabled");
+                                //}
+                                if (res.btnSendReadEnable == true) {
+                                    $("#btnSendRead").removeClass("layui-btn-disabled");
+                                }
+                            }
+                        }
+
+                        if (res.print_link != null || res.print_link!="") {
+                            $("#btnPrint").removeClass("layui-btn-disabled");
+                        }
+                        if (res.btnCommitText == "") {
+
+                        } else {
+                            $("#btnCommit").val(res.btnCommitText);
+                        }
+                        if (res.doc_descReadOnly) {
+                            $("#tb_DocName").attr("readonly", "readonly");
+                            $("#am_Docdes").attr("readonly", "readonly");
+                        }
+                        //下一审批人不是空的，隐藏自定义人员
+                        if (res.nextpersonid != "") {
+                            $("#person").val(res.nextpersonname);
+                            $("#person").attr("title", res.nextpersonid);
+                            $("#zdyry").css("display", "none");
+                        } else {
+                            var html_radio = "";
+                            for (var i = 0; i < res.ds_nextperson.length; i++) {
+                                html_radio += '<input type="radio" name="person" value="' + res.ds_nextperson[i].PERSON_ID + '" title="' + res.ds_nextperson[i].PERSON_NAME + '">'
+
+                            }
+                            $("#div_person").append(html_radio);
+                        }
+                        //审批为最后一个节点
+                        if (res.next_node_type == "end") {
+                            $("#btnCommit").html(res.btnCommitText);
+                            $("#zdyry").css("display", "none");
+                        }
+                        //渲染退回人下拉框
+                        GetThr(form, res.ds_thr);
+                        //渲染审批节点
+                        var html_node = "";
+                        var n = -70;
+                        var m = -5;
+                        for (var i = 0; i < res.ds_flow_node.length; i++) {
+                            n = n + 90;
+                            m = m + 90;
+                            if (res.curr_appr_node == (res.ds_flow_node[i].CURR_NODE_CODE + "_" + res.ds_flow_node[i].CURR_RECT)) {
+                                html_node += "<div  style='position: absolute; width: 70px; left: " + n + "px;text-align: center;'> <img  src='../../images/person_finish.png' style='height: 37px; width: 35px'  /><div  style='background:#66FFCC;color:#000000; font-size: small;'>" + res.ds_flow_node[i].CURR_NODE_NAME + "</div>   </div>";
+                            } else {
+                                if (res.curr_appr_node == "" && res.next_code!="") {
+                                    if (i == 0) {
+                                        html_node += "<div  style='position: absolute; width: 70px; left: " + n + "px;text-align: center;'> <img  src='../../images/person_finish.png' style='height: 37px; width: 35px'  /><div  style='background:#66FFCC;color:#000000; font-size: small;'>" + res.ds_flow_node[i].CURR_NODE_NAME + "</div>   </div>";
+                                    } else {
+                                        html_node += "<div  style='position: absolute; width: 70px; left: " + n + "px;text-align: center;'> <img  src='../../images/person.png' style='height: 37px; width: 35px'  /><div  style='background:#CCCCFF;color:#000000; font-size: small;'>" + res.ds_flow_node[i].CURR_NODE_NAME + "</div>   </div>";
+                                    }
+                                } else {
+                                    html_node += "<div  style='position: absolute; width: 70px; left: " + n + "px;text-align: center;'> <img  src='../../images/person.png' style='height: 37px; width: 35px'  /><div  style='background:#CCCCFF;color:#000000; font-size: small;'>" + res.ds_flow_node[i].CURR_NODE_NAME + "</div>   </div>";
+                                }
+                            }
+                            if (i != res.ds_flow_node.length - 1) {
+                                html_node += "<div  style='position: absolute; width: 20px; left: " + m + "px; text-align: center; vertical-align: middle; height: 100px;'><img alt='' src='../../images/right.png' style='height: 37px; width: 35px'  /></div>";
+                            }
+                        }
+                        if (res.ds_flow_node.length > 0) {
+
+                            $('appr_node').attr('src', 'Flow_Node.cshtml');
+                        }
+                        $("#appr_node").contents().find("body").append(html_node);
+                        form.render();
+                        //渲染审批节点结束
+                        //渲染审批事务
+                        var html_tran = "";
+                        for (var i = 0; i < res.ds_tran.length; i++) {
+                            html_tran += "<tr><td>" + (i + 1) + "</td><td>" + res.ds_tran[i].APPL_DEPT + "</td><td>" + res.ds_tran[i].APPR_PERSON + "</td><td>" + res.ds_tran[i].ST + "</td><td style='word-break:break-all; word-wrap:break-word;'>" + (res.ds_tran[i].APPR_NOTE == null ? "" : res.ds_tran[i].APPR_NOTE )+ "</td><td>" + res.ds_tran[i].APPR_DATE + "</td></tr>";
+                        }
+                        $("#appr_info").append(html_tran);
+                        //渲染审批事务结束
+                        
+                    } else {
+                        layer.msg(res.msg, {
+                            icon: 5
+                        });
+                    }
+                },
+                error: function (res) {
+                    layer.msg("请求接口出错，请联系管理员", {
+                        icon: 5
+                    });
+                }
+            });
+        }
+        //提交
+        function btnCommit() {
+            if ($("#btnCommit").hasClass("layui-btn-disabled")) { return; };
+            $("#btnCommit").hasClass("layui-btn-disabled");
+            var appr_flow_id = result.appr_flow_id;
+            var docid = '@ViewBag.docid';
+            var person_id = "";
+            if (result.nextpersonid != "") {
+                person_id = $("#person").attr("title");
+            } else {
+                person_id = $(':radio[name="person"]:checked').val();
+            }
+            var spyj = $("#am_spyj").val();
+            var status = '@ViewBag.status';
+            var appr_id = result.apprid;
+            var curr_rect = result.curr_rect;
+            var title = $("#tb_DocName").val();
+            var des = $("#am_Docdes").val();
+            var curr_node_type = result.curr_node_type;
+            var curr_node = result.curr_node;
+            var next_node_type = result.next_node_type;
+            var next_node = result.next_code;
+            if (title == undefined || title == null || title == "") {
+                layer.msg("标题不能为空", { icon: 5 });
+                return;
+            }
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                url: '@Url.Action("CommitAppr", "WorkFlow")',
+                data: {
+                    appr_flow_id: appr_flow_id,
+                    docid: docid,
+                    person_id: person_id,
+                    spyj: spyj,
+                    status: status,
+                    appr_id: appr_id, curr_rect: curr_rect, title: title, des: des, curr_node_type: curr_node_type,
+                    curr_node: curr_node, next_node_type: next_node_type, next_node: next_node
+                },
+                success: function (res) {
+                    if (res.code == 200) {
+                        $("#btnBack").addClass("layui-btn-disabled");
+                        $("#btnCommit").addClass("layui-btn-disabled");
+                        $("#btnTakeBack").addClass("layui-btn-disabled");
+                        $("#btnSendRead").addClass("layui-btn-disabled");
+                        parent.layer.msg(res.msg, {
+                            icon: 6
+                        });
+                        parent.layer.close(parent.layer.getFrameIndex(window.name));
+                        parent.Refresh();
+                        window.top.RefreshNotice();
+                    } else if (res.code == 300) {
+                        layer.msg(res.msg, { icon: 5 });
+                    } else {
+                        $("#btnBack").addClass("layui-btn-disabled");
+                        $("#btnCommit").addClass("layui-btn-disabled");
+                        $("#btnTakeBack").addClass("layui-btn-disabled");
+                        $("#btnSendRead").addClass("layui-btn-disabled");
+                        layer.msg(res.msg, { icon: 5 });
+                    }
+                },
+                error: function () {
+                    layer.msg("接口出错，请联系管理员", { icon: 5 });
+                }
+            });
+        }
+
+        //退回
+        function btnBack() {
+            if ($("#btnBack").hasClass("layui-btn-disabled")) { return; };
+            layer.open({
+                type: 1,
+                area: ['650px', '300px'],
+                title: '退回'
+                , content: $("#test"),
+                shade: 0,
+                btn: ['确定退回', '取消']
+                , btn1: function (index, layero) {
+                    var ii = 0;
+                    layer.confirm('确认退回吗？', { btn: ['是', '否'], icon: 3, title: '提示' }, function (index) {
+                        ii++;
+                        if (ii == 1) {
+                            $.ajax({
+                                type: 'post',
+                                dataType: 'json',
+                                url: '@Url.Action("BackAppr", "WorkFlow")',
+                                data: {
+                                    appr_flow_id: result.appr_flow_id,
+                                    spyj: $("#am_spyj").val(),
+                                    apprid: result.apprid,
+                                    thr: $('select[name="Thr"] option:selected').val()
+                                },
+                                success: function (res) {
+                                    if (res.code == 200) {
+                                        $("#btnBack").addClass("layui-btn-disabled");
+                                        $("#btnCommit").addClass("layui-btn-disabled");
+                                        $("#btnTakeBack").addClass("layui-btn-disabled");
+                                        $("#btnSendRead").addClass("layui-btn-disabled");
+                                        parent.layer.msg(res.msg, {
+                                            icon: 6
+                                        });
+                                        parent.layer.close(parent.layer.getFrameIndex(window.name));
+                                        parent.Refresh();
+                                        window.top.RefreshNotice();
+                                        
+                                    } else if (res.code == 300) {
+                                        layer.msg(res.msg, { icon: 5 });
+                                    } else {
+                                        $("#btnBack").addClass("layui-btn-disabled");
+                                        $("#btnCommit").addClass("layui-btn-disabled");
+                                        $("#btnTakeBack").addClass("layui-btn-disabled");
+                                        $("#btnSendRead").addClass("layui-btn-disabled");
+                                        layer.msg(res.msg, { icon: 5 });
+                                    }
+                                    return false;
+                                },
+                                error: function () {
+                                    layer.msg("接口出错，请联系管理员", { icon: 5 });
+                                    return false;
+                                }
+                            });
+                        }
+                    });
+                    return false;
+                },
+                btn2: function (index, layero) {
+                    $("#backReason").val("");
+                    layer.closeAll();
+                    return false;
+                },
+                cancel: function (layero, index) {
+                    $("#backReason").val("");
+                    layer.closeAll();
+                }
+
+            });
+        }
+        //打印审批信息
+        function btnPrint() {
+            layer.open({
+                type: 2,
+                area: ['85%', '95%'],
+                title: '打印 - 审批',
+                content: result.print_link
+            });
+        }
+
+        //收回
+        function btnTakeBack() {
+            if ($("#btnTakeBack").hasClass("layui-btn-disabled")) { return; };
+            var ii = 0;
+            layer.confirm('确认收回吗？', { btn: ['是', '否'], icon: 3, title: '提示' }, function (index) {
+                ii++;
+                if (ii == 1) {
+                    $.ajax({
+                        type: 'post',
+                        dataType: 'json',
+                        url: '@Url.Action("TakeBackAppr", "WorkFlow")',
+                        data: {
+                            apprid: result.apprid,
+                            tjjdlx: result.tjjdlx,
+                            tjjd: result.tjjd,
+                            spyj: $("#am_spyj").val(),
+                            upper_node: result.upper_node,
+                            upper_rect: result.upper_rect,
+                            curr_rect: result.curr_rect
+                        },
+                        success: function (res) {
+                            if (res.code == 200) {
+                                $("#btnBack").addClass("layui-btn-disabled");
+                                $("#btnCommit").addClass("layui-btn-disabled");
+                                $("#btnTakeBack").addClass("layui-btn-disabled");
+                                $("#btnSendRead").addClass("layui-btn-disabled");
+                                parent.layer.msg(res.msg, {
+                                    icon: 6
+                                });
+                                parent.layer.close(parent.layer.getFrameIndex(window.name));
+                                parent.Refresh();
+                                window.top.RefreshNotice();
+
+                            } else if (res.code == 300) {
+                                layer.msg(res.msg, { icon: 5 });
+                            } else {
+                                $("#btnBack").addClass("layui-btn-disabled");
+                                $("#btnCommit").addClass("layui-btn-disabled");
+                                $("#btnTakeBack").addClass("layui-btn-disabled");
+                                $("#btnSendRead").addClass("layui-btn-disabled");
+                                layer.msg(res.msg, { icon: 5 });
+                            }
+                            return false;
+                        },
+                        error: function () {
+                            layer.msg("接口出错，请联系管理员", { icon: 5 });
+                            return false;
+                        }
+                    });
+                }
+            });
+        }
+        //传阅
+        function btnSendRead() {
+            layer.msg("功能未完成，敬请期待！", { icon: 5 }); return;
+            if ($("#btnSendRead").hasClass("layui-btn-disabled")) { return; };
+        }
+    </script>
+</body>
+</html>

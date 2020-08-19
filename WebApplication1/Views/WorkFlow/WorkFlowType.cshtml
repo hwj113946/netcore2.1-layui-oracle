@@ -1,0 +1,162 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>审批流类型设置</title>
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <script src="~/js/do_function.js"></script>
+    <script src="~/layui/layui.js"></script>
+    <link href="~/layui/css/layui.css" rel="stylesheet" />
+    <script type="text/html" id="EditData">
+        <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="edit" style="text-decoration:none;">编辑</a>
+        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del" style="text-decoration:none;">删除</a>
+    </script>
+</head>
+<body>
+    <form class="layui-form">
+        <div>
+            <div class="layui-inline"></div>
+            <div class="layui-inline">
+                <div class="layui-input-inline">
+                    <input type="text" name="flowvalue" lay-verify="" placeholder="请输入类型代码或名称" autocomplete="off" class="layui-input" />
+                </div>
+            </div>
+            <div class="layui-inline">
+                <a class="layui-btn layui-btn-sm" onclick="Refresh()">查询</a>
+            </div>
+            <div class="layui-inline">
+                <a class="layui-btn layui-btn-sm" onclick="btnAdd()">新增</a>
+            </div>
+            <table id="table1" lay-filter="table1"></table>
+        </div>
+    </form>
+    <script>
+        var table; var layer; var form;
+        layui.use(['table', 'form', 'tree'], function () {
+            table = layui.table;
+            form = layui.form;
+            layer = layui.layer;
+            //表格渲染
+            table.render({
+                elem: '#table1'
+              , height: document.documentElement.clientHeight - 60
+              , url: '@Url.Action("GetWorkFlowType", "WorkFlow")',
+                where: {
+                    flowvalue: ""
+                }, method: 'Post'
+                  , page: true //开启分页
+                    , limit: 20
+                    , limits: [20, 30, 50]
+                    , cols: [[ //表头
+                        { field: '', title: '操作', align: 'center', width: 150, toolbar: '#EditData' }
+                    , { field: 'APPR_TYPE_ID', title: 'ID', sort: true, hide: true }
+                    , { field: 'APPR_TYPE_CODE', title: '代码', width: 120, sort: true }
+                    , { field: 'APPR_TYPE_NAME', title: '名称', width: 150, sort: true }
+                    , {
+                        field: 'ATTRIBUTE3', title: '流程类型', width: 150, sort: true, templet: function (d) {
+                            if (d.ATTRIBUTE3 == 0) {
+                                return '审批流程';
+                            } else {
+                                return '子流程';
+                            }
+                        }
+                    }
+                    , { field: 'APPR_START_STATUS', title: '启动状态', width: 150, sort: true }
+                    , { field: 'APPR_END_STATUS', title: '结束状态', width: 150, sort: true }
+                    , { field: 'APPR_CANCEL_STATUS', title: '退回状态', width: 150, sort: true }
+                    , { field: 'ATTRIBUTE1',title:'查看页面',width:150,sort:true }
+                    , { field: 'ATTRIBUTE9', title: '对应表', width: 150, sort: true }
+                    , { field: 'ATTRIBUTE2', title: '表主键', width: 150, sort: true }
+                    , { field: 'ATTRIBUTE10', title: '表状态字段', width: 150, sort: true }
+                    , { field: 'ATTRIBUTE11', title: '表存储审批ID', width: 150, sort: true }
+                    , {
+                        field: 'ATTRIBUTE4', title: '是否重新生成流程', width: 150, sort: true,
+                        templet: function (d) {
+                            if (d.ATTRIBUTE4 == 0) {
+                                return '否';
+                            } else {
+                                return '是';
+                            }
+                        }
+                    }
+                    , { field: 'ATTRIBUTE6', title: '调用存储过程', width: 150, sort: true }
+                    , { field: 'NOTE', title: '备注', width: 150, sort: true }
+                    , { field: 'STATUS', title: '状态', align: 'center', width: 150, sort: true,hide:true }
+                    ]]
+            });
+            //工具栏监控
+            table.on('tool(table1)', function (obj) {
+                switch (obj.event) {
+                    case "edit":
+                        var url = '/WorkFlow/WorkFlowTypeEdit?zt=update&id=' + obj.data.APPR_TYPE_ID + '&name=' + obj.data.APPR_TYPE_NAME
+                            + '&code=' + obj.data.APPR_TYPE_CODE + '&attribute3=' + obj.data.ATTRIBUTE3 + '&start_status=' + obj.data.APPR_START_STATUS
+                        + '&end_status=' + obj.data.APPR_END_STATUS + '&cancel_status=' + obj.data.APPR_CANCEL_STATUS + '&note=' + obj.data.NOTE
+                        + '&status=' + obj.data.STATUS + '&attribute9=' + obj.data.ATTRIBUTE9 + '&attribute2=' + obj.data.ATTRIBUTE2 + '&attribute10=' + obj.data.ATTRIBUTE10
+                        + '&attribute11=' + obj.data.ATTRIBUTE11 + '&attribute4=' + obj.data.ATTRIBUTE4 + '&attribute6=' + obj.data.ATTRIBUTE6 + '&attribute1=' + obj.data.ATTRIBUTE1;
+                        
+                        layer.open({
+                            type: 2,
+                            area: ['800px', '500px'],
+                            title: '编辑 - 审批流类型',
+                            content: url
+                        });
+                        break;
+                    case "del":
+                        layer.confirm('是否删除？', { btn: ['是', '否'], icon: 3, title: '提示' }, function (index) {
+                            $.ajax({
+                                type: 'post',
+                                dataType: 'json',
+                                traditional: true,
+                                url: '@Url.Action("RemoveWorkFlowType", "WorkFlow")',
+                                data: {
+                                    id: obj.data.APPR_TYPE_ID
+                                },
+                                success: function (res) {
+                                    if (res.code == "200") {
+                                        layer.msg(res.msg, { icon: 6 });
+                                        Refresh();
+                                    } else {
+                                        layer.msg(res.msg, { icon: 5 });
+                                    }
+                                },
+                                error: function () {
+                                    layer.msg("接口出错，请联系管理员", { icon: 5 });
+                                }
+                            });
+                        });
+                        break;
+                }
+            });
+        });
+        //刷新
+        function Refresh() {
+            table.reload('table1', {
+                url: '@Url.Action("GetWorkFlowType", "WorkFlow")',
+                where: {
+                    flowvalue: $("input[name='flowvalue']").val()
+                },
+                method: 'Post',
+                page: {
+                    curr: 1
+                }
+            });
+        }
+        //新增
+        function btnAdd() {
+            var url = '/WorkFlow/WorkFlowTypeEdit?zt=add';
+            layer.open({
+                type: 2,
+                area: ['800px', '500px'],
+                title: '新增 - 审批流类型',
+                content: url
+            });
+        }
+    </script>
+</body>
+</html>

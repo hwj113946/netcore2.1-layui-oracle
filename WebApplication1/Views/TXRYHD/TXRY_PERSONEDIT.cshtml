@@ -1,0 +1,242 @@
+@{Layout = null;}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width = device - width" />
+    <title>TXRY_PERSONEDIT</title>
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <link href="~/layui/css/layui.css" rel="stylesheet" />
+    <script src="~/layui/layui.js"></script>
+</head>
+<body>
+    <form style="text-align:center;" class="layui-form">
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label"><span style="color:red;">*</span>姓名</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="person_name" placeholder="姓名" lay-verify="required">
+                </div>
+                <label class="layui-form-label"><span style="color:red;">*</span>身份证号码</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="id_card_number" placeholder="身份证号码" lay-verify="required">
+                </div>
+                <label class="layui-form-label">联系电话</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="phone" placeholder="联系电话" >
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">紧急联系人</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="emergency_person" placeholder="姓名" >
+                </div>
+                <label class="layui-form-label">联系电话</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="emergency_phone" placeholder="联系电话" >
+                </div>
+                <label class="layui-form-label">联系地址</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="emergency_address" placeholder="联系地址" >
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">配偶姓名</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="spouse_name" placeholder="姓名" >
+                </div>
+                <label class="layui-form-label">健康状况</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="spouse_health" placeholder="健康状况" >
+                </div>
+                <label class="layui-form-label">联系电话</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="spouse_phone" placeholder="联系电话" >
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">转移接收地</label>
+            <div class="layui-input-block" style="text-align:left;">
+                <input type="checkbox" id="qyszd" title="企业所在地">
+                <input type="checkbox" id="hjszd" title="户籍所在地">
+            </div>
+            @*<label class="layui-form-label"></label>
+            <div class="layui-input-inline">
+            </div>
+            <label class="layui-form-label"></label>
+            <div class="layui-input-inline">
+            </div>*@
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">户籍</label>
+            <div class="layui-input-block">
+                <textarea placeholder="请按照户口本第一页的详细地址填写" class="layui-textarea" id="domicile_place" ></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">长期居住地</label>
+            <div class="layui-input-block">
+                <textarea placeholder="请输入长期居住地" class="layui-textarea" id="long_term_residence" ></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div align="center">
+                <button class="layui-btn" id="btnCommit" lay-submit="" lay-filter="btnCommit">保存</button>
+                &nbsp;
+                <button class="layui-btn layui-btn-danger" onclick="btnClose()">关闭</button>
+            </div>
+        </div>
+    </form>
+    <script>
+        var layer, form;
+        layui.use(["layer", "form"], function () {
+            layer = layui.layer, form = layui.form;
+            form.render();
+            form.on("submit(btnCommit)", function (data) {
+                var person_name = $("#person_name").val();
+                var phone = $("#phone").val();
+                var id_card_number = $("#id_card_number").val();
+                //配偶
+                var spouse_name = $("#spouse_name").val();
+                var spouse_health = $("#spouse_healthspouse_health").val();
+                var spouse_phone = $("#spouse_phone").val();
+                //紧急
+                var emergency_person = $("#emergency_person").val();
+                var emergency_phone = $("#emergency_phone").val();
+                var emergency_address = $("#emergency_address").val();
+                //户籍
+                var domicile_place = $("#domicile_place").val();
+                //长期居住地
+                var long_term_residence = $("#long_term_residence").val();
+                var transfer_type = "";
+                if ($("input[id='qyszd']:checked")) {
+                    transfer_type += "企业所在地";
+                }
+                if ($("input[id='hjszd']:checked")) {
+                    if (transfer_type == "") {
+                        transfer_type += "户籍所在地";
+                    } else {
+                        transfer_type += ",户籍所在地";
+                    }
+                    
+                }
+                var status = '@ViewBag.status';
+                var url = status == "add" ? '@Url.Action("Insert", "Txryhd")' : '@Url.Action("Modifys", "Txryhd")';
+                var data = status == "add" ?
+                    {
+                        person_name: person_name
+                        , phone: phone
+                        , id_card_number: id_card_number
+                        , long_term_residence: long_term_residence
+                        , domicile_place: domicile_place
+                        //配偶
+                        , spouse_name: spouse_name
+                        , spouse_health: spouse_health
+                        , spouse_phone: spouse_phone
+                        //紧急联系人
+                        , emergency_person: emergency_person
+                        , emergency_phone: emergency_phone
+                        , emergency_address: emergency_address
+                        //转移接收地
+                        , transfer_type: transfer_type
+                    }
+                    :
+                    {
+                        person_id: '@ViewBag.person_id'
+                        ,person_name: person_name
+                        , phone: phone
+                        , id_card_number: id_card_number
+                        , long_term_residence: long_term_residence
+                        , domicile_place: domicile_place
+                        //配偶
+                        , spouse_name: spouse_name
+                        , spouse_health: spouse_health
+                        , spouse_phone: spouse_phone
+                        //紧急联系人
+                        , emergency_person: emergency_person
+                        , emergency_phone: emergency_phone
+                        , emergency_address: emergency_address
+                        //转移接收地
+                        , transfer_type: transfer_type
+                    };
+                $.ajax({
+                    type: 'post',
+                    dataType: 'json',
+                    url: url,
+                    data: data,
+                    success: function (res) {
+                        if (res.code == 200) {
+                            parent.layer.close(parent.layer.getFrameIndex(window.name));
+                            parent.layer.msg(res.msg, {
+                                icon: 6
+                            });
+                            parent.Refresh();
+                            return false;
+                        } else {
+                            layer.msg(res.msg, { icon: 5 });
+                            return false;
+                        }
+                    },
+                    error: function () {
+                        layer.msg("接口出错，请联系管理员", { icon: 5 });
+                        return false;
+                    }
+                });
+                return false;
+            });
+        });
+        function btnClose() {
+            var index = parent.layer.getFrameIndex(window.name);
+            parent.layer.close(index);
+        }
+
+
+        $(document).ready(function () {
+            if ('@ViewBag.status' == "add") { return; }
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                url: '@Url.Action("GetPersonById", "Txryhd")',
+                data: { person_id: '@ViewBag.person_id' },
+                success: function (res) {
+                    if (res.code == 0) {
+                        $("#person_name").val(res.data[0].PERSON_NAME);
+                        $("#phone").val(res.data[0].PHONE);
+                        $("#id_card_number").val(res.data[0].ID_CARD_NUMBER);
+                        $("#long_term_residence").val(res.data[0].LONG_TERM_RESIDENCE);
+                        $("#domicile_place").val(res.data[0].DOMICILE_PLACE);
+                        //配偶
+                        $("#spouse_name").val(res.data[0].SPOUSE_NAME);
+                        $("#spouse_health").val(res.data[0].SPOUSE_HEALTH);
+                        $("#spouse_phone").val(res.data[0].SPOUSE_PHONE);
+                        //紧急
+                        $("#emergency_person").val(res.data[0].EMERGENCY_PERSON);
+                        $("#emergency_phone").val(res.data[0].EMERGENCY_PHONE);
+                        $("#emergency_address").val(res.data[0].EMERGENCY_ADDRESS);
+                        var type = res.data[0].TRANSFER_TYPE;
+                        if (type == undefined || type == null || type == "") {
+
+                        } else {
+                            if (type.indexOf("企业所在地")!=-1) {
+                                $("#qyszd").prop("checked", true);
+                            }
+                            if (type.indexOf("户籍所在地") != -1) {
+                                $("#hjszd").prop("checked", true);
+                            }
+                            form.render();
+                        }
+                    } else {
+                        layer.msg(res.msg, { icon: 5 });
+                    }
+                }, error: function (res) {
+                    layer.msg("接口出错，请联系管理员", { icon: 5 });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

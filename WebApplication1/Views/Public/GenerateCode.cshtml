@@ -1,0 +1,144 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>GenerateCode</title>
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <link href="~/layui/css/layui.css" rel="stylesheet" />
+    <script src="~/layui/layui.js"></script>
+    <script src="~/js/do_function.js"></script>
+</head>
+<body>
+    <form class="layui-form">
+        <div>
+            <br />
+            <div id="button">
+                <div class="layui-inline"></div>
+                <div class="layui-inline">
+                    <div class="layui-input-inline">
+                        <select name="Table" id="tableSelect" lay-verify="" lay-filter="tableSelect" lay-search></select>
+                    </div>
+                </div>
+                <div class="layui-inline">
+                    <a class="layui-btn layui-btn-sm layui-btn-primary" onclick="Refresh()">查询</a>
+                </div>
+                <div class="layui-inline">
+                    <a class="layui-btn layui-btn-sm" onclick="btnGenerateCode()">生成</a>
+                </div>
+            </div>
+            <table id="table1" lay-filter="table1"></table>
+        </div>
+    </form>
+    <script>
+        function GetDataTable(form) {
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                url: '@Url.Action("GetCurrentUserDataTable", "Public")',
+                success: function (res) {
+                    if (res.code == "0") {
+                        var table = "";
+                        $.each(res.data, function (index, item) {
+                            if (index == 0) {
+                                table = item.TABLE_NAME;
+                            }
+                            $('#tableSelect').append('<option value="' + item.TABLE_NAME + '">' + item.TABLE_NAME + '【' + item.COMMENTS+'】' + '</option>');
+                        });
+
+                        $("#tableSelect").val(table);
+                        form.render('select');
+                    } else {
+                        layer.msg(res.msg, {
+                            icon: 5
+                        });
+                    }
+                },
+                error: function (res) {
+                    layer.msg("接口出错，请联系管理员", {
+                        icon: 5
+                    });
+                }
+            });
+        }
+        var table; var ins, form, layer;
+        layui.use(['table', 'form'], function () {
+            table = layui.table, form = layui.form, layer = layui.layer;
+            form.render();
+            GetDataTable(form);
+            ins = table.render({
+                elem: '#table1'
+                , height: document.documentElement.clientHeight - 60
+                , cellMinWidth: 120
+                , url: '@Url.Action("GetColByTableName", "Public")',
+                where: {
+                    table_name: ''
+                }, method: 'Post'
+                , page: true //开启分页
+                , limit: 1000
+                , limits: [1000]
+                , cols: [[ //表头
+                      { type: 'checkbox', fixed: 'left' }
+                    , { field: 'COLUMN_NAME', title: '字段名称', sort: true }
+                    , { field: 'COMMENTS', title: '注释', sort: true }
+                    , { field: 'DATA_TYPE', title: '字段类型', sort: true }
+                    , { field: 'TABLE_NAME', title: '表名', hide: true }
+                ]], loading: true
+            });
+        });
+
+        function Refresh() {
+            table.reload('table1', {
+                url: '@Url.Action("GetColByTableName", "Public")',
+                where: {
+                    table_name: $('select[name="Table"] option:selected').val()
+                },
+                method: 'Post',
+                page: {
+                    curr: 1
+                }
+            });
+        }
+
+        function btnGenerateCode() {
+            var checkStatus = table.checkStatus('table1');
+            var name = [];
+            if (checkStatus.data.length > 0) {
+                for (var i = 0; i < checkStatus.data.length; i++) {
+                    name.push(checkStatus.data[i].COLUMN_NAME);
+                }
+                 $.ajax({
+                        type: 'post',
+                        dataType: 'json',
+                        traditional: true,
+                        url: '@Url.Action("FailureStatusForDept", "Dept")',
+                        data: {
+                            name: name,
+                            table_name: checkStatus.data[0].TABLE_NAME
+                        },
+                        success: function (res) {
+                            if (res.code == "200") {
+                                layer.msg("成功", { icon: 6 });
+                            } else {
+                                layer.msg(res.msg, { icon: 5 });
+                            }
+                        },
+                        error: function () {
+                            layer.msg("接口出错，请联系管理员", { icon: 5 });
+                        }
+                    });
+
+            } else {
+                layer.msg('请先勾选数据', {
+                    icon: 5
+                });
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,345 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>txyrhd_fh</title>
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <script src="~/js/do_function.js"></script>
+    <link href="~/layui/css/layui.css" rel="stylesheet" />
+    <script src="~/layui/layui.js"></script>
+</head>
+<body>
+    <form style="text-align:center;" class="layui-form">
+        @*<div style="padding: 20px; background-color: #F2F2F2;">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md12">
+                <div class="layui-card">
+                    <div class="layui-card-header" style="color:teal">基础情况</div>
+                    <div class="layui-card-body">*@
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">姓名</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="person_name" placeholder="姓名" readonly="readonly">
+                </div>
+                <label class="layui-form-label">身份证号码</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="id_card_number" placeholder="身份证号码" readonly="readonly">
+                </div>
+                <label class="layui-form-label">联系电话</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="phone" placeholder="联系电话" readonly="readonly">
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">紧急联系人</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="emergency_person" placeholder="姓名" readonly="readonly">
+                </div>
+                <label class="layui-form-label">联系电话</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="emergency_phone" placeholder="联系电话" readonly="readonly">
+                </div>
+                <label class="layui-form-label">联系地址</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="emergency_address" placeholder="联系地址" readonly="readonly">
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">配偶姓名</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="spouse_name" placeholder="姓名" readonly="readonly">
+                </div>
+                <label class="layui-form-label">健康状况</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="spouse_health" placeholder="健康状况" readonly="readonly">
+                </div>
+                <label class="layui-form-label">联系电话</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="spouse_phone" placeholder="联系电话" readonly="readonly">
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">转移接收地</label>
+            <div class="layui-input-block">
+                <textarea placeholder="转移接收地:企业所在地;户籍所在地" class="layui-textarea" id="transfer_type" readonly="readonly"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">户籍</label>
+            <div class="layui-input-block">
+                <textarea placeholder="请按照户口本第一页的详细地址填写" class="layui-textarea" id="domicile_place" readonly="readonly"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">长期居住地</label>
+            <div class="layui-input-block">
+                <textarea placeholder="请输入长期居住地" class="layui-textarea" id="long_term_residence" readonly="readonly"></textarea>
+            </div>
+        </div>
+        @*</div>
+                    </div>
+                </div>
+            </div>
+        </div>*@
+        @*<div style="padding: 20px; background-color: #F2F2F2;">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md12">
+                    <div class="layui-card">
+                        <div class="layui-card-header" style="color:teal">户籍（请按照户口本第一页的详细地址填写）</div>
+                        <div class="layui-card-body">
+                            <div class="layui-form-item layui-form-text">
+                                <label class="layui-form-label">户籍</label>
+                                <div class="layui-input-block">
+                                    <textarea placeholder="请按照户口本第一页的详细地址填写" class="layui-textarea" id="domicile_place" readonly="readonly"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="padding: 20px; background-color: #F2F2F2;">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md12">
+                    <div class="layui-card">
+                        <div class="layui-card-header" style="color:teal">长期居住地</div>
+                        <div class="layui-card-body">
+                            <div class="layui-form-item layui-form-text">
+                                <label class="layui-form-label">长期居住地</label>
+                                <div class="layui-input-block">
+                                    <textarea placeholder="请输入长期居住地" class="layui-textarea" id="long_term_residence" readonly="readonly"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>*@
+        @*<div style="padding: 20px; background-color: #F2F2F2;">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md12">
+                    <div class="layui-card">
+                        <div class="layui-card-header" style="color:teal">紧急联系人</div>
+                        <div class="layui-card-body">
+                            <div class="layui-form-item">
+                                <div class="layui-inline">
+                                    <label class="layui-form-label">姓名</label>
+                                    <div class="layui-input-inline">
+                                        <input type="text" class="layui-input"  id="emergency_person" placeholder="姓名" readonly="readonly">
+                                    </div>
+                                    <label class="layui-form-label">联系电话</label>
+                                    <div class="layui-input-inline">
+                                        <input type="text" class="layui-input" id="emergency_phone"  placeholder="联系电话" readonly="readonly">
+                                    </div>
+                                    <label class="layui-form-label">联系地址</label>
+                                    <div class="layui-input-inline">
+                                        <input type="text" class="layui-input" id="emergency_address"  placeholder="联系地址" readonly="readonly">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>*@
+        @*<div style="padding: 20px; background-color: #F2F2F2;">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md12">
+                    <div class="layui-card">
+                        <div class="layui-card-header" style="color:teal">配偶情况</div>
+                        <div class="layui-card-body">
+                            <div class="layui-form-item">
+                                <div class="layui-inline">
+                                    <label class="layui-form-label">姓名</label>
+                                    <div class="layui-input-inline">
+                                        <input type="text" class="layui-input"  id="spouse_name" placeholder="姓名" readonly="readonly">
+                                    </div>
+                                    <label class="layui-form-label">健康状况</label>
+                                    <div class="layui-input-inline">
+                                        <input type="text" class="layui-input" id="spouse_health"  placeholder="健康状况" readonly="readonly">
+                                    </div>
+                                    <label class="layui-form-label">联系电话</label>
+                                    <div class="layui-input-inline">
+                                        <input type="text" class="layui-input" id="spouse_phone"  placeholder="联系电话" readonly="readonly">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>*@
+        @*<div style="padding: 20px; background-color: #F2F2F2;">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md12">
+                    <div class="layui-card">
+                        <div class="layui-card-header" style="color:teal">其它信息</div>
+                        <div class="layui-card-body">
+                            <div class="layui-form-item">
+                                <div class="layui-inline">
+                                    <label class="layui-form-label">性别</label>
+                                    <div class="layui-input-inline">
+                                        <input type="text" class="layui-input"  id="sex" placeholder="性别" readonly="readonly">
+                                    </div>
+                                    <label class="layui-form-label">年龄</label>
+                                    <div class="layui-input-inline">
+                                        <input type="text" class="layui-input" id="age"  placeholder="年龄" readonly="readonly">
+                                    </div>
+                                    <label class="layui-form-label">民族</label>
+                                    <div class="layui-input-inline">
+                                        <input type="text" class="layui-input" id="national"  placeholder="民族" readonly="readonly">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <div class="layui-inline">
+                                    <label class="layui-form-label">政治面貌</label>
+                                    <div class="layui-input-inline">
+                                        <input type="text" class="layui-input"  id="political_landscape" placeholder="政治面貌" readonly="readonly">
+                                    </div>
+                                    <label class="layui-form-label">健康状况</label>
+                                    <div class="layui-input-inline">
+                                        <input type="text" class="layui-input" id="health"  placeholder="健康状况" readonly="readonly">
+                                    </div>
+                                    <label class="layui-form-label">居住情况</label>
+                                    <div class="layui-input-inline">
+                                        <input type="text" class="layui-input" id="living_situation"  placeholder="居住情况" readonly="readonly">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-form-item layui-form-text">
+                                <label class="layui-form-label">特殊人员及其说明</label>
+                                <div class="layui-input-block">
+                                    <textarea placeholder="特殊人员及其说明" class="layui-textarea" id="special_person" readonly="readonly"></textarea>
+                                </div>
+                            </div>
+                            <div class="layui-form-item layui-form-text">
+                                <label class="layui-form-label">养老保险参保地</label>
+                                <div class="layui-input-block">
+                                    <textarea placeholder="养老保险参保地" class="layui-textarea" id="e_i_address" readonly="readonly"></textarea>
+                                </div>
+                            </div>
+                            <div class="layui-form-item layui-form-text">
+                                <label class="layui-form-label">医疗保险参保地</label>
+                                <div class="layui-input-block">
+                                    <textarea placeholder="医疗保险参保地" class="layui-textarea" id="medical_i_address" readonly="readonly"></textarea>
+                                </div>
+                            </div>
+                            <div class="layui-form-item layui-form-text">
+                                <label class="layui-form-label">是否享受工伤保险待遇</label>
+                                <div class="layui-input-block">
+                                    <textarea placeholder="是否享受工伤保险待遇" class="layui-textarea" id="is_gsbx" readonly="readonly"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>*@
+        <div class="layui-form-item">
+            <div align="center">
+                <button class="layui-btn" id="btnCommit" lay-submit="" lay-filter="btnCommit">复核</button>
+                &nbsp;
+                <button class="layui-btn layui-btn-danger" onclick="btnClose()">关闭</button>
+            </div>
+        </div>
+    </form>
+    <script>
+        var layer, form;
+        layui.use(["layer", "form"], function () {
+            layer = layui.layer, form = layui.form;
+            form.render();
+            form.on("submit(btnCommit)", function (data) {
+                $.ajax({
+                    type: 'post',
+                    dataType: 'json',
+                    url: '@Url.Action("ModifyForSingle", "Txryhd")',
+                    data: { person_id:'@ViewBag.person_id'},
+                    success: function (res) {
+                        if (res.code == "200") {
+                            parent.layer.close(parent.layer.getFrameIndex(window.name));
+                            parent.layer.msg("保存成功", {
+                                icon: 6
+                            });
+                            parent.Refresh();
+                            return false;
+                        } else {
+                            layer.msg(res.msg, { icon: 5 });
+                            return false;
+                        }
+                    },
+                    error: function () {
+                        layer.msg("接口出错，请联系管理员", { icon: 5 });
+                        return false;
+                    }
+                });
+                return false;
+            });
+        });
+
+        function btnClose() {
+            var index = parent.layer.getFrameIndex(window.name);
+            parent.layer.close(index);
+        }
+
+        $(document).ready(function () {
+            if ('@ViewBag.status' != "update") {
+                $("#btnCommit").css({ "display": "none" });
+            }
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                url: '@Url.Action("GetPersonById", "Txryhd")',
+                data: { person_id: '@ViewBag.person_id' },
+                success: function (res) {
+                    if (res.code == "0") {
+                        $("#person_name").val(res.data[0].PERSON_NAME);
+                        //$("#sex").val(res.data[0].SEX);
+                        //$("#age").val(res.data[0].AGE);
+                        $("#phone").val(res.data[0].PHONE);
+                        $("#id_card_number").val(res.data[0].ID_CARD_NUMBER);
+                        //$("#national").val(res.data[0].NATIONAL);
+                        //$("#political_landscape").val(res.data[0].POLITICAL_LANDSCAPE);
+                        $("#long_term_residence").val(res.data[0].LONG_TERM_RESIDENCE);
+                        $("#domicile_place").val(res.data[0].DOMICILE_PLACE);
+                        //$("#special_person").val(res.data[0].SPECIAL_PERSON);
+                        $("#health").val(res.data[0].HEALTH);
+                        //$("#e_i_address").val(res.data[0].E_I_ADDRESS);
+                        //$("#medical_i_address").val(res.data[0].MEDICAL_I_ADDRESS);
+                        //$("#is_gsbx").val(res.data[0].IS_GSBX);
+                        //$("#living_situation").val(res.data[0].LIVING_SITUATION);
+                        $("#spouse_name").val(res.data[0].SPOUSE_NAME);
+                        $("#spouse_health").val(res.data[0].SPOUSE_HEALTH);
+                        $("#spouse_phone").val(res.data[0].SPOUSE_PHONE);
+                        //$("#family_major_person_name").val(res.data[0].FAMILY_MAJOR_PERSON_NAME);
+                        //$("#family_major_p_relationship").val(res.data[0].FAMILY_MAJOR_P_RELATIONSHIP);
+                        //$("#family_major_person_address").val(res.data[0].FAMILY_MAJOR_PERSON_ADDRESS);
+                        //$("#family_major_person_phone").val(res.data[0].FAMILY_MAJOR_PERSON_PHONE);
+                        $("#emergency_person").val(res.data[0].EMERGENCY_PERSON);
+                        $("#emergency_phone").val(res.data[0].EMERGENCY_PHONE);
+                        $("#emergency_address").val(res.data[0].EMERGENCY_ADDRESS);
+                        $("#transfer_type").val(res.data[0].TRANSFER_TYPE);
+                    }
+                    else {
+                        layer.msg(res.msg, { icon: 5 });
+                    }
+                }, error: function (res) {
+                    layer.msg("接口出错，请联系管理员", { icon: 5 });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

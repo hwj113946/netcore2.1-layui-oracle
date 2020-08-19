@@ -1,0 +1,345 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>ydjybx_sgybb</title>
+    <link href="~/layui/css/layui.css" rel="stylesheet" />
+    <script src="~/layui/layui.js"></script>
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <script src="~/js/do_function.js"></script>
+    <script>
+        layui.config({
+            base: '/layui/module/'
+        }).extend({
+            tableMerge: 'tableMerge'
+        });
+    </script>
+</head>
+<body>
+    <form class="layui-form">
+        <div>
+            <input type="hidden" id="hf" hidden="hidden" />
+            <div class="layui-row">
+                <div class="layui-col-md4">
+                    <br />
+                    <div class="layui-inline"></div>
+                    <div class="layui-inline">
+                        <div class="layui-input-inline">
+                            <input type="text" id="person_name" lay-verify="" placeholder="请输入姓名或身份证号" class="layui-input" />
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <a class="layui-btn layui-btn-sm layui-btn-primary" onclick="Refresh()" style="text-decoration:none;">查询</a>
+                    </div>
+                    <div class="layui-input-inline">
+                        <a style="text-decoration:underline;color:deepskyblue;" href="~/ExcelTemp/票据材料接收导入模板.xls">导入模板下载</a>
+                    </div>
+                    <div class="layui-inline">
+                        <a id="btnImport" class="layui-btn layui-btn-sm" style="text-decoration:none;">导入</a>
+                    </div>
+                    <table id="table1" lay-filter="table1"></table>
+                </div>
+                <div class="layui-col-md8" align="right">
+                    <br />
+                    <div class="layui-inline"></div>
+                    <div class="layui-inline">
+                        <div class="layui-input-inline">
+                            <input type="text" lay-verify="" id="flow_no" placeholder="请输入流程号" class="layui-input" />
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <a class="layui-btn layui-btn-sm layui-btn-primary" onclick="Refresh1()" style="text-decoration:none;">查询</a>
+                    </div>
+                    <div class="layui-inline">
+                        <a class="layui-btn layui-btn-sm" onclick="Add()" style="text-decoration:none;">新增</a>
+                    </div>
+                    <div class="layui-inline">
+                        <a class="layui-btn layui-btn-sm layui-btn-normal" onclick="Edit()" style="text-decoration:none;">编辑</a>
+                    </div>
+                    <div class="layui-inline">
+                        <a class="layui-btn layui-btn-sm" onclick="Commit()" style="text-decoration:none;">提交</a>
+                    </div>
+                    <div class="layui-inline">
+                        <a class="layui-btn layui-btn-sm" onclick="Return()" style="text-decoration:none;">完成并转回原节点</a>
+                    </div>
+                    <table id="mergeTable" lay-filter="table2"></table>
+                </div>
+            </div>
+        </div>
+    </form>
+    <form class="layui-form" id="test" style="display:none">
+        <br />
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">导入结果</label>
+            <div class="layui-input-block">
+                <textarea lay-verify="required" id="Import" placeholder="导入结果" class="layui-textarea"></textarea>
+            </div>
+        </div>
+    </form>
+    <script>
+        var table, ins, layer, form, mergeTable, upload, files;
+        layui.use(['table', 'form', 'tableMerge', 'upload'], function () {
+            table = layui.table;
+            layer = layui.layer;
+            form = layui.form;
+            mergeTable = layui.tableMerge;
+            upload = layui.upload;
+            //左表格渲染
+            table.render({
+                elem: '#table1'
+              , height: document.documentElement.clientHeight - 60
+              , url: '@Url.Action("GetPerson_ydjybx", "Txryhd")',
+                where: {
+                    person_name: ""
+                }, method: 'Post'
+                  , page: true //开启分页
+                    , limit: 20
+                , limits: [20, 30, 40, 50]
+                    , cols: [[ //表头
+                        { type: 'radio', fixed: 'left' }
+                        , { field: 'PERSON_ID', title: '人员ID', sort: true, hide: true }
+                    , { field: 'PERSON_NAME', title: '人员姓名',  sort: true,width:120 }
+                    , { field: 'ID_CARD_NUMBER', title: '身份证号码',  sort: true }
+                    ]]
+            });
+            //右表格渲染
+            table.render({
+                elem: '#mergeTable'
+                , height: document.documentElement.clientHeight - 60
+                , url: '@Url.Action("GetYdjybxByPerson", "Txryhd")',
+                where: {
+                    person_id: "",
+                    flow_no:""
+                }, method: 'Post'
+                , page: true //开启分页
+                , limit: 20
+                , limits: [20, 30, 40, 50]
+                , cols: [[ //表头
+                    { type: 'radio', fixed: 'left' }
+                    , { field: 'AFR_ID', title: 'AFR_ID', sort: true, hide: true }
+                    , { field: 'PERSON_ID', title: 'PERSON_ID', sort: true, hide: true }
+                    , { field: 'FLOW_NO', merge: true, title: '流程号',  sort: true, width: 130 }
+                    , { field: 'FLOW_TYPE', title: '流程类型', sort: true, width: 150 }
+                    , { field: 'PERSON_NAME', title: '姓名', sort: true, width: 120 }
+                    , { field: 'ID_CARD_NUMBER', title: '身份证号码', sort: true, width: 170 }
+                    , { field: 'ATTRIBUTE2', title: '接收时间', sort: true, width: 170 }
+                    , { field: 'TRAN_DATE', title: '处理时间', sort: true, width: 150 }
+                    , { field: 'TRAN_PERSON', title: '处理人', sort: true, width: 120 }
+                    , { field: 'FAIL_REASON', title: '退回原因', sort: true, width: 180 }
+                    , { field: 'STATUS', title: '状态', sort: true, width: 150 }
+                ]], done: function () {
+                    mergeTable.render(this)
+                }
+            });
+            //监听左表格 行单击事件
+            table.on('radio(table1)', function (obj) {
+                $("#hf").val(obj.data.PERSON_ID);
+                Refresh1();
+            });
+
+            //文件上传
+            upload.render({
+                elem: '#btnImport'
+                , url: '@Url.Action("FileUpload_Pjcljs", "Txryhd")'
+                , accept: 'file' //普通文件
+                , exts: 'xls|xlsx' //允许上传的文件后缀
+                , multiple: false//单文件上传
+                , choose: function (obj) {
+                    files = obj.pushFile();
+                }
+                , before: function () {
+                    layer.load();
+                }
+                , done: function (res, index) {//返回值接收
+                    layer.closeAll('loading');
+                    if (res.code == 0) {
+                        layer.msg(res.msg, { icon: 6 });
+                        layer.open({
+                            type: 1,
+                            area: ['650px', '450px'],
+                            title: '导入结果'
+                            , content: $("#test"),
+                            shade: 0,
+                            //btn: ['关闭']
+                            //, btn1: function (index, layero) {
+                            //    $("#Import").val("");
+                            //    return false;
+                            //},
+                            cancel: function (layero, index) {
+                                $("#Import").val("");
+                                layer.closeAll();
+                            }
+                        });
+                        $("#Import").val(res.returnMsg);
+                    } else {
+                        layer.msg(res.msg, { icon: 5 });
+                    }
+                    delete files[index];
+                    Refresh();
+                }, error: function () {
+                    layer.closeAll('loading');
+                    layer.msg('导入失败，请联系管理员', { icon: 5 });
+                }
+            });
+        });
+        //左刷新
+        function Refresh() {
+            table.reload('table1', {
+                url: '@Url.Action("GetPerson_ydjybx", "Txryhd")',
+                where: {
+                    person_name: $("#person_name").val()
+                },
+                method: 'Post',
+                page: {
+                    curr: 1
+                }
+            });
+        }
+        //右刷新
+        function Refresh1() {
+            table.reload('mergeTable', {
+                url: '@Url.Action("GetYdjybxByPerson", "Txryhd")',
+                where: {
+                    person_id: $("#hf").val(),
+                    flow_no: $("#flow_no").val()
+                },
+                method: 'Post',
+                page: {
+                    curr: 1
+                }, done: function () {
+                    mergeTable.render(this)
+                }
+            });
+        }
+        //新增
+        function Add() {
+            if ($("#hf").val() == undefined || $("#hf").val() == "") {
+                layer.msg("请点击左边数据表格中的数据进行选择", { icon: 5 });
+                return;
+            }
+            layer.open({
+                type: 2,
+                area: ["800px", "500px"],
+                title: "新增 - 票据材料接收单",
+                content: '@Url.Action("ydjybx_pjcljs_edit", "Txryhd")' + '?status=add&person_id=' + $("#hf").val() + '&Rowid='
+            });
+        }
+        //编辑
+        function Edit() {
+            var checkState = table.checkStatus('mergeTable');
+            if (checkState.data.length > 0) {
+                if (checkState.data.length > 1) {
+                    layer.msg("编辑只能勾选单行数据", { icon: 5 }); return;
+                }
+                if (checkState.data[0].STATUS == "待补充材料" || checkState.data[0].STATUS == "编辑") {
+                    layer.open({
+                    type: 2,
+                        area: ["800px", "500px"],
+                        title: "编辑 - 票据材料接收单",
+                        content: '@Url.Action("ydjybx_pjcljs_edit", "Txryhd")' + '?status=update&person_id=' + checkState.data[0].PERSON_ID + '&Rowid=' + checkState.data[0].AFR_ID
+                });
+                } else {
+                    layer.msg("不在编辑状态，无法修改", { icon: 5 });
+                }
+
+            } else {
+                layer.msg("请勾选一行数据后再操作", { icon: 5 });
+            }
+        }
+        //转回原节点
+        function Return() {
+            var checkState = table.checkStatus('mergeTable');
+            if (checkState.data.length > 0) {
+                if (checkState.data.length > 1) {
+                    layer.msg("只能勾选单行数据", { icon: 5 }); return;
+                }
+                if (checkState.data[0].STATUS == "待补充材料") {
+                    if (checkState.data[0].ATTRIBUTE2 == "") {
+                        layer.msg("请填写票据材料接收时间", { icon: 5 }); return;
+                    }
+                    var i = 0;
+                    layer.confirm('确定复核通过并转回原节点吗？', { btn: ['是', '否'], icon: 3, title: '提示' }, function (index) {
+                        i++;
+                        if (i == 1) {
+                            $.ajax({
+                                type: 'post',
+                                dataType: 'json',
+                                traditional: true,
+                                url: '@Url.Action("ReturnNode_ydjybx", "Txryhd")',
+                                data: {
+                                    afr_id: checkState.data[0].AFR_ID
+                                },
+                                success: function (res) {
+                                    if (res.code == "200") {
+                                        layer.msg(res.msg, { icon: 6 });
+                                        Refresh1();
+                                    } else {
+                                        layer.msg(res.msg, { icon: 5 });
+                                    }
+                                },
+                                error: function () {
+                                    layer.msg("接口出错，请联系管理员", { icon: 5 });
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    layer.msg("不在待补充材料状态，无法操作", { icon: 5 });
+                }
+            } else {
+                layer.msg("请勾选一行数据后再操作", { icon: 5 });
+            }
+        }
+        //提交
+        function Commit() {
+            var checkState = table.checkStatus('mergeTable');
+            if (checkState.data.length > 0) {
+                if (checkState.data.length > 1) {
+                    layer.msg("只能勾选单行数据", { icon: 5 }); return;
+                }
+                if (checkState.data[0].STATUS == "编辑") {
+                    if (checkState.data[0].ATTRIBUTE2 == "") {
+                        layer.msg("请填写票据材料接收时间", { icon: 5 }); return;
+                    }
+                    var i = 0;
+                    layer.confirm('确定提交复核吗？', { btn: ['是', '否'], icon: 3, title: '提示' }, function (index) {
+                        i++;
+                        if (i == 1) {
+                            $.ajax({
+                                type: 'post',
+                                dataType: 'json',
+                                traditional: true,
+                                url: '@Url.Action("CommitToYbb_ydjybx", "Txryhd")',
+                                data: {
+                                    afr_id: checkState.data[0].AFR_ID
+                                },
+                                success: function (res) {
+                                    if (res.code == "200") {
+                                        layer.msg(res.msg, { icon: 6 });
+                                        Refresh1();
+                                    } else {
+                                        layer.msg(res.msg, { icon: 5 });
+                                    }
+                                },
+                                error: function () {
+                                    layer.msg("接口出错，请联系管理员", { icon: 5 });
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    layer.msg("编辑状态的单据才能发起提交", { icon: 5 });
+                }
+            } else {
+                layer.msg("请勾选数据后再操作", { icon: 5 });
+            }
+        }
+    </script>
+</body>
+</html>

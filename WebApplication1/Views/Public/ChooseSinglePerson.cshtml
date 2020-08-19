@@ -1,0 +1,263 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>审批节点选择人员</title>
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <link href="~/layui/css/layui.css" rel="stylesheet" />
+    <script src="~/layui/layui.js"></script>
+    <script src="~/js/do_function.js"></script>
+    <script src="~/js/xm-select.js"></script>
+</head>
+<body>
+    <form class="layui-form">
+        <div>
+            <br />
+            <div id="button" style="text-align:center;">
+                <div class="layui-inline"></div>
+                <div class="layui-inline">
+                    <div class="layui-input-inline">
+                        <select name="Corp" id="corpSelect" lay-verify="" lay-filter="corpSelect" lay-search></select>
+                    </div>
+                    <div class="layui-input-inline">
+                        <select name="Dept" id="deptSelect" lay-verify="" lay-filter="deptSelect" lay-search></select>
+                    </div>
+                    <div class="layui-input-inline">
+                        <div id="xm" class="xm-select-demo" style="width:200px;"></div>
+                    </div>
+                </div>
+                <div class="layui-input-inline">
+                    <input type="text" id="person_name" lay-verify="" placeholder="请输入账号或姓名" autocomplete="off" class="layui-input" />
+                </div>
+                <div class="layui-inline"><a class="layui-btn layui-btn-sm layui-btn-primary" onclick="Refresh()">查询</a></div>
+                <div class="layui-inline"><a class="layui-btn layui-btn-sm" id="btnAllot" onclick="btnCommit()">确定</a></div>
+                <div class="layui-inline"><a class="layui-btn layui-btn-sm layui-btn-danger" id="btnAllot" onclick="RemoveChoose()">清除已选</a></div>
+            </div>
+            <table id="table1" lay-filter="table1"></table>
+        </div>
+    </form>
+    <script>
+        var xm;
+        function GetCorp(form) {
+            var corp_id = "";
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                url: '@Url.Action("GetCorp", "Public")',
+                success: function (res) {
+                    if (res.code == "0") {
+                        $.each(res.data, function (index, item) {
+                            if (index == 0) {
+                                corp_id = '@ViewBag.CORP_ID' == "" ? item.CORP_ID:'@ViewBag.CORP_ID';
+                                $.ajax({
+                                    type: 'post',
+                                    dataType: 'json',
+                                    url: '@Url.Action("GetDeptByCorp", "Public")',
+                                    data: {
+                                        corp_id: corp_id
+                                    },
+                                    success: function (res) {
+                                        if (res.code == "0") {
+                                            var dept_id = "";
+                                            $.each(res.data, function (index, item) {
+                                                dept_id = '@ViewBag.DEPT_ID' == "" ? item.DEPT_ID:'@ViewBag.DEPT_ID';
+                                                $('#deptSelect').append('<option value="' + item.DEPT_ID + '">' + item.DEPT_NAME + '</option>');
+                                            });
+                                            GetPost(dept_id);//获取部门
+                                            $("#deptSelect").val(dept_id);
+                                            form.render('select');
+                                        } else {
+                                            layer.msg(res.msg, {
+                                                icon: 5
+                                            });
+                                        }
+                                    },
+                                    error: function (res) {
+                                        layer.msg("加载部门信息出错了，请联系管理员", {
+                                            icon: 5
+                                        });
+                                    }
+                                });
+                            }
+                            $('#corpSelect').append('<option value="' + item.CORP_ID + '">' + item.CORP_NAME + '</option>');
+                        });
+
+                        $("#corpSelect").val(corp_id);
+                        form.render('select');
+                    } else {
+                        layer.msg(res.msg, {
+                            icon: 5
+                        });
+                    }
+                },
+                error: function (res) {
+                    layer.msg("加载公司信息出错了，请联系管理员", {
+                        icon: 5
+                    });
+                }
+            });
+        }
+        //获取部门
+        function GetDept(form) {
+            document.getElementById("deptSelect").options.length = 0;
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                url: '@Url.Action("GetDeptByCorp", "Public")',
+                data: {
+                    corp_id: $('select[name="Corp"] option:selected').val()
+                },
+                success: function (res) {
+                    if (res.code == "0") {
+                        var dept_id = "";
+                        $.each(res.data, function (index, item) {
+                            dept_id = '@ViewBag.DEPT_ID' == "" ? item.DEPT_ID : '@ViewBag.DEPT_ID';
+                            $('#deptSelect').append('<option value="' + item.DEPT_ID + '">' + item.DEPT_NAME + '</option>');
+                        });
+                        $("#deptSelect").val(dept_id);
+                        form.render('select');
+                    } else {
+                        layer.msg(res.msg, {
+                            icon: 5
+                        });
+                    }
+                },
+                error: function (res) {
+                    layer.msg("加载部门信息出错了，请联系管理员", {
+                        icon: 5
+                    });
+                }
+            });
+        }
+        //岗位
+        function GetPost(dept_id) {
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                url: '@Url.Action("GetPostByDeptToTree", "Posts")',
+                data: { dept_id: dept_id },
+                success: function (res) {
+                    if (res.code == "0") {
+                        var post_id = "";
+                        $.each(res.data, function (index, item) {
+                            if (index == 0) {
+                                post_id = '@ViewBag.POST_ID' == "" ? item.POST_ID : '@ViewBag.POST_ID';
+                            }
+                            return;
+                        });
+                        xm = xmSelect.render({
+                            el: '#xm',
+                            data: res.data,
+                            //显示为text模式
+                            model: { label: { type: 'text' } },
+                            //单选模式
+                            radio: true,
+                            //选中关闭
+                            clickClose: true,
+                            //树
+                            tree: {
+                                show: true,
+                                //非严格模式
+                                strict: false,
+                                //默认展开节点
+                                expandedKeys: [-1],
+                            },
+                            //展开所有节点
+                            expandedKeys: true
+                        });
+                        xm.setValue(post_id);
+                    }
+                }, error: function () {
+                    layer.msg("接口出错，请联系管理员", { icon: 5 });
+                }
+            });
+        }
+        var table, ins, form, layer;
+        layui.use(['table', 'form'], function () {
+            table = layui.table, form = layui.form, layer = layui.layer;
+            form.render();
+
+            GetCorp(form);
+
+            //监听公司下拉框变更
+            form.on('select(corpSelect)', function (data) {
+                GetDept(form);
+            });
+            //监听部门下拉框变更
+            form.on('select(deptSelect)', function (data) {
+                GetPost(data.value);
+            });
+            ins = table.render({
+                elem: '#table1'
+                , height: document.documentElement.clientHeight - 130
+                , cellMinWidth: 120
+                , url: '@Url.Action("GetSinglePerson", "Public")',
+                where: {
+                    corp_id: $('select[name="Corp"] option:selected').val(),
+                    dept_id: $('select[name="Dept"] option:selected').val(),
+                    post_id: '@ViewBag.POST_ID',
+                    person_name: ''
+                }, method: 'Post'
+                , page: true //开启分页
+                , limit: 20
+                , limits: [20, 30, 40, 50]
+                , cols: [[ //表头
+                    { type: 'radio',title:'选择',fixed:'left' }
+                    , { field: 'PERSON_ID', title: 'ID', sort: true, hide: true }
+                    , { field: 'PERSON_CODE', title: '账号', sort: true }
+                    , { field: 'PERSON_NAME', title: '姓名', sort: true }
+                    , { field: 'SEX', title: '性别', sort: true, width: 150 }
+                    , { field: 'MOBILE_PHONE', title: '手机号', sort: true, width: 150 }
+                    , { field: 'FIXED_PHONE', title: '短号', sort: true, width: 150 }
+                    , { field: 'EMAIL', title: '电子邮箱', sort: true, width: 130 }
+                    , { field: 'CORP_NAME', title: '所属公司名称', sort: true, width: 150 }
+                    , { field: 'DEPT_NAME', title: '所属部门名称', sort: true, width: 150 }
+                    , { field: 'POST_NAME', title: '所属岗位名称', sort: true, width: 150 }
+                ]]
+            });
+        });
+        function Refresh() {
+            table.reload('table1', {
+                url: '@Url.Action("GetSinglePerson", "Public")',
+                where: {
+                    corp_id: $('select[name="Corp"] option:selected').val(),
+                    dept_id: $('select[name="Dept"] option:selected').val(),
+                    post_id: xm.getValue('valueStr'),
+                    person_name: $("#person_name").val()
+                },
+                method: 'Post',
+                page: {
+                    curr: 1
+                }
+            });
+        }
+        //选择
+        function btnCommit() {
+            var checkStatus = table.checkStatus('table1');
+            if (checkStatus.data.length > 0) {
+                window.parent.$("#person").val(checkStatus.data[0].PERSON_NAME);
+                window.parent.document.getElementById("person").title = checkStatus.data[0].PERSON_ID;
+                var index = window.parent.layer.getFrameIndex(window.name);
+                window.parent.layer.close(index);
+            } else {
+                layer.msg('请先勾选数据', {
+                    icon: 5
+                });
+            }
+        }
+        //清除已选
+        function RemoveChoose() {
+            window.parent.$("#person").val("");
+            window.parent.document.getElementById("person").title = "";
+            var index = window.parent.layer.getFrameIndex(window.name);
+            window.parent.layer.close(index);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>审批流设置-编辑</title>
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <script src="~/js/do_function.js"></script>
+    <script src="~/layui/layui.js"></script>
+    <link href="~/layui/css/layui.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="layui-form" style="text-align:center;">
+        <br />
+        <input type="hidden" id="hf" hidden="hidden" />
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label"><span style="color:red;">*</span>名称</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="name" name="Name" lay-verify="required" placeholder="请输入名称" maxlength="50">
+                </div>
+                <label class="layui-form-label"><span style="color:red;">*</span>审批流类型</label>
+                <div class="layui-input-inline">
+                    <select name="Type" id="typeSelect" lay-verify="" lay-filter="typeSelect" lay-search></select>
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">备注</label>
+            <div class="layui-input-block">
+                <textarea placeholder="请输入内容" class="layui-textarea" id="note" name="Note"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div align="center">
+                <button class="layui-btn" id="btnCommit" lay-submit="" lay-filter="btnCommit">保存</button>
+                &nbsp;
+                <button class="layui-btn layui-btn-danger" onclick="btnClose()">关闭</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        function btnClose() {
+            var index = parent.layer.getFrameIndex(window.name);
+            parent.layer.close(index);
+        }
+        var form;
+        //渲染类型下拉框
+        function GetWorkFlowType(form) {
+            hf.value = '@ViewBag.typeid';
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                url: '@Url.Action("GetWorkFlowTypes", "WorkFlow")',
+                success: function (res) {
+                    if (res.code == "0") {
+                        $.each(res.data, function (index, item) {
+                            if (index==0) {
+                                if (hf.value == "") {
+                                    hf.value = item.APPR_TYPE_ID;
+                                }
+                            }
+                            $('#typeSelect').append('<option value="' + item.APPR_TYPE_ID + '">' + item.APPR_TYPE_NAME + '</option>');
+                        });
+                        $("#typeSelect").val(hf.value);
+                        form.render('select');
+                    } else {
+                        parent.layer.msg("加载类型信息出错，请联系管理员", {
+                            icon: 5
+                        });
+                    }
+                },
+                error: function (res) {
+                    parent.layer.msg("加载类型信息出错，请联系管理员", {
+                        icon: 5
+                    });
+                }
+            });
+        }
+        layui.use(['table', 'form'], function () {
+            form = layui.form;
+            GetWorkFlowType(form);
+            //监听提交
+            form.on('submit(btnCommit)', function (data) {
+                var name = $("#name").val() == null ? "" : $("#name").val();
+                var note = $("#note").val() == null ? "" : $("#note").val();
+                var zt = '@ViewBag.zt';
+                var url = "";
+                var datas;
+                if ($("#hf").val() == null || $("#hf").val() == undefined || $("#hf").val() == "") {
+                    layer.msg("审批类型不能为空", { icon: 5 }); return;
+                }
+                if (zt == "add") {
+                    url = '@Url.Action("WorkFlow_FlowInsert","WorkFlow")';
+                    datas = {
+                        note: note, name: name, typeid: ($("#hf").val() == null ? "" : $("#hf").val())
+                    };
+                } else {
+                    var id = '@ViewBag.id';
+                    url = '@Url.Action("WorkFlow_FlowUpdate", "WorkFlow")';
+                    datas = {
+                        note: note, name: name, typeid: ($("#hf").val() == null ? "" : $("#hf").val()), id: id
+                    };
+                }
+                $.ajax({
+                    type: 'post',
+                    dataType: 'json',
+                    url: url,
+                    data: datas,
+                    success: function (res) {
+                        if (res.code == "200") {
+                            parent.layer.close(parent.layer.getFrameIndex(window.name));
+                            parent.layer.msg("保存成功", {
+                                icon: 6
+                            });
+                            parent.Refresh();
+                            return false;
+                        } else {
+                            layer.msg(res.msg, { icon: 5 });
+                            return false;
+                        }
+                    },
+                    error: function () {
+                        layer.msg("接口出错，请联系管理员", { icon: 5 });
+                        return false;
+                    }
+                });
+                return false;
+            });
+
+            form.on('select(typeSelect)', function (data) {
+                hf.value = data.value
+            });
+        });
+        $(document).ready(function () {
+            var zt = '@ViewBag.zt';
+            if (zt == "update") {
+                $("#name").val('@ViewBag.name');
+                $("#note").val('@ViewBag.note');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+@{Layout = null;}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width = device - width" />
+    <title>TEST_APPR_EDIT</title>
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <link href="~/layui/css/layui.css" rel="stylesheet" />
+    <script src="~/layui/layui.js"></script>
+</head>
+<body>
+    <form style="text-align:center;" class="layui-form">
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">标题</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="title" placeholder="">
+                </div>
+                <label class="layui-form-label">内容</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="content" placeholder="">
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div align="center">
+                <button class="layui-btn" id="btnCommit" lay-submit="" lay-filter="btnCommit">保存</button>
+                &nbsp;
+                <button class="layui-btn layui-btn-danger" onclick="btnClose()">关闭</button>
+            </div>
+        </div>
+    </form>
+    <script>
+        var layer, form;
+        layui.use(["layer", "form"], function () {
+            layer = layui.layer, form = layui.form;
+            form.render();
+            form.on("submit(btnCommit)", function (data) {
+                var title = $("#title").val();
+                var content = $("#content").val();
+                var status = '@ViewBag.status';
+                var url = status == "add" ? '@Url.Action("Insert","TEST_APPR")' : '@Url.Action("Modify","TEST_APPR")';
+                var data = status == "add" ?
+                    {
+                        test_id: '@ViewBag.test_id'
+                        , title: title
+                        , content: content
+                    }
+                    :
+                    {
+                        test_id: '@ViewBag.test_id'
+                        , title: title
+                        , content: content
+
+                    };
+                $.ajax({
+                    type: 'post',
+                    dataType: 'json',
+                    url: url,
+                    data: data,
+                    success: function (res) {
+                        if (res.code == 200) {
+                            parent.layer.close(parent.layer.getFrameIndex(window.name));
+                            parent.layer.msg(res.msg, {
+                                icon: 6
+                            });
+                            parent.Refresh();
+                            return false;
+                        } else {
+                            layer.msg(res.msg, { icon: 5 });
+                            return false;
+                        }
+                    },
+                    error: function () {
+                        layer.msg("接口出错，请联系管理员", { icon: 5 });
+                        return false;
+                    }
+                });
+                return false;
+            });
+        });
+        function btnClose() {
+            var index = parent.layer.getFrameIndex(window.name);
+            parent.layer.close(index);
+        }
+
+
+        $(document).ready(function () {
+            if ('@ViewBag.status' == "add") { return; }
+            $.ajax({
+                type: 'get',
+                dataType: 'json',
+                url: '@Url.Action("GetTEST_APPRById","TEST_APPR")',
+                data: { test_id: '@ViewBag.test_id' },
+                success: function (res) {
+                    if (res.code == 0) {
+                        $("#title").val(res.data[0].TITLE);
+                        $("#content").val(res.data[0].CONTENT);
+                    }
+                }, error: function (res) {
+                    layer.msg("接口出错，请联系管理员", { icon: 5 });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

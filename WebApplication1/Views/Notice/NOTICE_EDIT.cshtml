@@ -1,0 +1,144 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>NOTICE_EDIT</title>
+    <link href="~/layui/css/layui.css" rel="stylesheet" />
+    <script src="~/layui/layui.js"></script>
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <script src="~/js/do_function.js"></script>
+</head>
+<body>
+    <form class="layui-form" style="text-align:center;">
+        <br />
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">标题</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="TITLE" lay-verify="required" placeholder="标题">
+                </div>
+                <label class="layui-form-label">昵称/尊称</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="NICKNAME" lay-verify="required" placeholder="昵称/尊称">
+                </div>                
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">落款时间</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="date" id="NOTICE_DATE" class="layui-input" lay-verify="required">
+                </div>
+                <label class="layui-form-label">落款公司/人</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="COMPANY" placeholder="落款公司/人" lay-verify="required">
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">通知内容</label>
+            <div class="layui-input-block">
+                <textarea class="layui-textarea" placeholder="通知内容" lay-verify="required" id="MESSAGE"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div align="center">
+                <button class="layui-btn" id="btnCommit" lay-submit="" lay-filter="btnCommit">保存</button>
+                &nbsp;
+                <button class="layui-btn layui-btn-danger" onclick="btnClose()">关闭</button>
+            </div>
+        </div>
+    </form>
+    <script>
+         var layer, form,laydate;
+        layui.use(["layer", "form","laydate"], function () {
+            layer = layui.layer, form = layui.form, laydate = layui.laydate;
+            //日期
+            laydate.render({
+                elem: '#NOTICE_DATE',
+                type: 'date',
+                format: 'yyyy-MM-dd',
+                calendar: true
+            });
+            form.render();
+            form.on("submit(btnCommit)", function (data) {
+                var url = '@ViewBag.status' == 'add' ? '@Url.Action("Insert", "NOTICE")' : '@Url.Action("Modify", "NOTICE")';
+                var json = '@ViewBag.status' == 'add' ? {
+                    TITLE: $("#TITLE").val(),
+                    NICKNAME: $("#NICKNAME").val(),
+                    COMPANY: $("#COMPANY").val(),
+                    MESSAGE: $("#MESSAGE").val(),
+                    NOTICE_DATE: $("#NOTICE_DATE").val()
+                } : {
+                        TITLE:       $("#TITLE").val(),
+                        NICKNAME:    $("#NICKNAME").val(),
+                        COMPANY:    $("#COMPANY").val(),
+                        MESSAGE:    $("#MESSAGE").val(),
+                        NOTICE_DATE: $("#NOTICE_DATE").val(),
+                        Rowid: '@ViewBag.NOTICE_ID'
+                    };
+                $.ajax({
+                    type: 'post',
+                    dataType: 'json',
+                    url: url,
+                    data: json,
+                    success: function (res) {
+                        if (res.code == "200") {
+                            parent.layer.close(parent.layer.getFrameIndex(window.name));
+                            parent.layer.msg(res.msg, {
+                                icon: 6
+                            });
+                            parent.Refresh();
+                            return false;
+                        } else {
+                            layer.msg(res.msg, { icon: 5 });
+                            return false;
+                        }
+                    },
+                    error: function () {
+                        layer.msg("接口出错，请联系管理员", { icon: 5 });
+                        return false;
+                    }
+                });
+                return false;
+            });
+        });
+
+        function btnClose() {
+            var index = parent.layer.getFrameIndex(window.name);
+            parent.layer.close(index);
+        }
+        $(document).ready(function () {
+            if ('@ViewBag.status' == "add") {
+                return;
+            }            
+             $.ajax({
+                type: 'Get',
+                dataType: 'json',
+                url: '@Url.Action("GetNOTICEById", "NOTICE")',
+                data: { Rowid:'@ViewBag.NOTICE_ID' },
+                success: function (res) {
+                    if (res.code == "0") {
+                        $("#TITLE").val(res.data[0].TITLE);
+                        $("#NICKNAME").val(res.data[0].NICKNAME);
+                        $("#COMPANY").val(res.data[0].COMPANY);
+                        $("#MESSAGE").val(res.data[0].MESSAGE);
+                        $("#NOTICE_DATE").val(res.data[0].NOTICE_DATE);
+                    } else {
+                        $("#btnCommit").css({ "display": "none" });
+                        layer.msg(res.msg, { icon: 5 });
+                    }
+                }, error: function (res) {
+                    layer.msg("接口出错，请联系管理员", { icon: 5 });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,224 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>EditCorp</title>
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <script src="~/js/do_function.js"></script>
+    <link href="~/layui/css/layui.css" rel="stylesheet" />
+    <script src="~/layui/layui.js"></script>
+</head>
+<body>
+    <form style="text-align:center;" class="layui-form">
+        <br />
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label"><span style="color:red;">*</span>公司代码</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" lay-verify="required" id="corp_code" placeholder="请输入公司代码" maxlength="10" onkeyup="this.value=this.value.replace(/[^\w_]/g,'');">
+                </div>
+                <label class="layui-form-label"><span style="color:red;">*</span>公司名称</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="corp_name" lay-verify="required" placeholder="请输入公司名称" maxlength="50">
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">简称</label>
+                <div class="layui-input-inline" id="">
+                    <input type="text" class="layui-input" id="attribute1" placeholder="请输入公司名称简称">
+                </div><label class="layui-form-label">法定代表人</label>
+                <div class="layui-input-inline">
+                    <input type="text" id="law_person_name" placeholder="请输入公司法定代表人"  class="layui-input" id="lowperson" maxlength="4" onkeyup="this.value=this.value.replace(/[^\u4e00-\u9fa5]/g,'')">
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">传真</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="fax"  placeholder="请输入传真">
+                </div>
+                <label class="layui-form-label">邮政编码</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="zip" placeholder="请输入邮政编码">
+                </div>
+            </div>
+        </div>
+        @*<div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">银行账号</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="bank_account"  placeholder="请输入银行账号" onblur="CheckBank()">
+                </div>
+                <label class="layui-form-label">开户银行</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="bank_name" placeholder="请输入开户银行">
+                </div>
+            </div>
+        </div>*@
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">纳税登记号</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="tax_rq_number"  placeholder="请输入纳税登记号">
+                </div>
+                <label class="layui-form-label">电子邮箱</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="e_mail" placeholder="请输入电子邮箱">
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-block">
+                <label class="layui-form-label">地址</label>
+                <div class="layui-input-block">
+                    <input type="text" class="layui-input" id="detailed_address"  placeholder="请输入地址" maxlength="50" />
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">备注</label>
+            <div class="layui-input-block">
+                <textarea placeholder="请输入内容" class="layui-textarea" id="note"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div align="center">
+                <button class="layui-btn" lay-submit="" lay-filter="btnCommit">保存</button>
+                &nbsp;
+                <button class="layui-btn layui-btn-danger" onclick="btnClose()">关闭</button>
+            </div>
+        </div>
+    </form>
+    <script>
+        var layer, form;
+        layui.use(["layer", "form"], function () {
+            layer = layui.layer, form = layui.form;
+            form.render();
+            form.on("submit(btnCommit)", function (data) {
+                var corp_code = $("#corp_code").val();
+                var corp_name = $("#corp_name").val();
+                var attribute1 = $("#attribute1").val();
+                var law_person_name = $("#law_person_name").val();
+                var fax = $("#fax").val();
+                var zip = $("#zip").val();
+                var tax_rq_number = $("#tax_rq_number").val();
+                var detailed_address = $("#detailed_address").val();
+                var note = $("#note").val();
+                var e_mail = $("#e_mail").val();
+                //var bank_name = $("#bank_name").val();
+                //var bank_account = $("#bank_account").val();
+                var status = '@ViewBag.status';
+                var url = status == "add" ? '@Url.Action("Insert","Corp")' : '@Url.Action("Modify","Corp")';
+                var data = status == "add" ?
+                    {
+                        corp_code: corp_code, corp_name: corp_name, attribute1: attribute1, law_person_name: law_person_name, fax: fax, zip: zip,
+                        tax_rq_number: tax_rq_number, detailed_address: detailed_address, note: note, e_mail: e_mail/*, bank_name: bank_name, bank_account: bank_account*/
+                    }
+                    :
+                    {
+                        corp_code: corp_code, corp_name: corp_name, attribute1: attribute1, law_person_name: law_person_name, fax: fax,
+                        zip: zip, tax_rq_number: tax_rq_number, detailed_address: detailed_address, note: note, e_mail: e_mail,/* bank_name: bank_name,
+                        bank_account: bank_account,*/ corp_id: '@ViewBag.corp_id'
+                    };
+                $.ajax({
+                    type: 'post',
+                    dataType: 'json',
+                    url: url,
+                    data: data,
+                    success: function (res) {
+                        if (res.code == "200") {
+                            parent.layer.close(parent.layer.getFrameIndex(window.name));
+                            parent.layer.msg("保存成功", {
+                                icon: 6
+                            });
+                            parent.Refresh();
+                            return false;
+                        } else {
+                            layer.msg(res.msg, { icon: 5 });
+                            return false;
+                        }
+                    },
+                    error: function () {
+                        layer.msg("接口出错，请联系管理员", { icon: 5 });
+                        return false;
+                    }
+                });
+                return false;
+            });
+        });
+        function btnClose() {
+            var index = parent.layer.getFrameIndex(window.name);
+            parent.layer.close(index);
+        }
+
+        $(document).ready(function () {
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                url: '@Url.Action("GetCorpById","Corp")',
+                data: { corp_id: '@ViewBag.corp_id' },
+                success: function (res) {
+                    if (res.code == "0") {
+                        $("#corp_code").val(res.data[0].CORP_CODE);
+                        $("#corp_name").val(res.data[0].CORP_NAME);
+                        $("#attribute1").val(res.data[0].ATTRIBUTE1);
+                        $("#law_person_name").val(res.data[0].LAW_PERSON_NAME);
+                        $("#fax").val(res.data[0].FAX);
+                        $("#zip").val(res.data[0].ZIP);
+                        $("#tax_rq_number").val(res.data[0].TAX_RQ_NUMBER);
+                        $("#detailed_address").val(res.data[0].DETAILED_ADDRESS);
+                        $("#note").val(res.data[0].NOTE);
+                        $("#e_mail").val(res.data[0].E_MAIL);
+                        //$("#bank_name").val(res.data[0].BANK_NAME);
+                        //$("#bank_account").val(res.data[0].BANK_ACCOUNT);
+                    }
+                }, error: function (res) {
+                    layer.msg("接口出错，请联系管理员", { icon: 5 });
+                }
+            });
+        });
+        var bankjson = '{"CDB":"国家开发银行","ICBC":"中国工商银行","ABC":"中国农业银行","BOC":"中国银行","CCB":"中国建设银行","PSBC":"中国邮政储蓄银行","COMM":"交通银行","CMB":"招商银行","SPDB":"上海浦东发展银行","CIB":"兴业银行","HXBANK":"华夏银行","GDB":"广东发展银行","CMBC":"中国民生银行","CITIC":"中信银行","CEB":"中国光大银行","EGBANK":"恒丰银行","CZBANK":"浙商银行","BOHAIB":"渤海银行","SPABANK":"平安银行","SHRCB":"上海农村商业银行","YXCCB":"玉溪市商业银行","YDRCB":"尧都农商行","BJBANK":"北京银行","SHBANK":"上海银行","JSBANK":"江苏银行","HZCB":"杭州银行","NJCB":"南京银行","NBBANK":"宁波银行","HSBANK":"徽商银行","CSCB":"长沙银行","CDCB":"成都银行","CQBANK":"重庆银行","DLB":"大连银行","NCB":"南昌银行","FJHXBC":"福建海峡银行","HKB":"汉口银行","WZCB":"温州银行","QDCCB":"青岛银行","TZCB":"台州银行","JXBANK":"嘉兴银行","CSRCB":"常熟农村商业银行","NHB":"南海农村信用联社","CZRCB":"常州农村信用联社","H3CB":"内蒙古银行","SXCB":"绍兴银行","SDEB":"顺德农商银行","WJRCB":"吴江农商银行","ZBCB":"齐商银行","GYCB":"贵阳市商业银行","ZYCBANK":"遵义市商业银行","HZCCB":"湖州市商业银行","DAQINGB":"龙江银行","JINCHB":"晋城银行JCBANK","ZJTLCB":"浙江泰隆商业银行","GDRCC":"广东省农村信用社联合社","DRCBCL":"东莞农村商业银行","MTBANK":"浙江民泰商业银行","GCB":"广州银行","LYCB":"辽阳市商业银行","JSRCU":"江苏省农村信用联合社","LANGFB":"廊坊银行","CZCB":"浙江稠州商业银行","DYCB":"德阳商业银行","JZBANK":"晋中市商业银行","BOSZ":"苏州银行","GLBANK":"桂林银行","URMQCCB":"乌鲁木齐市商业银行","CDRCB":"成都农商银行","ZRCBANK":"张家港农村商业银行","BOD":"东莞银行","LSBANK":"莱商银行","BJRCB":"北京农村商业银行","TRCB":"天津农商银行","SRBANK":"上饶银行","FDB":"富滇银行","CRCBANK":"重庆农村商业银行","ASCB":"鞍山银行","NXBANK":"宁夏银行","BHB":"河北银行","HRXJB":"华融湘江银行","ZGCCB":"自贡市商业银行","YNRCC":"云南省农村信用社","JLBANK":"吉林银行","DYCCB":"东营市商业银行","KLB":"昆仑银行","ORBANK":"鄂尔多斯银行","XTB":"邢台银行","JSB":"晋商银行","TCCB":"天津银行","BOYK":"营口银行","JLRCU":"吉林农信","SDRCU":"山东农信","XABANK":"西安银行","HBRCU":"河北省农村信用社","NXRCU":"宁夏黄河农村商业银行","GZRCU":"贵州省农村信用社","FXCB":"阜新银行","HBHSBANK":"湖北银行黄石分行","ZJNX":"浙江省农村信用社联合社","XXBANK":"新乡银行","HBYCBANK":"湖北银行宜昌分行","LSCCB":"乐山市商业银行","TCRCB":"江苏太仓农村商业银行","BZMD":"驻马店银行","GZB":"赣州银行","WRCB":"无锡农村商业银行","BGB":"广西北部湾银行","GRCB":"广州农商银行","JRCB":"江苏江阴农村商业银行","BOP":"平顶山银行","TACCB":"泰安市商业银行","CGNB":"南充市商业银行","CCQTGB":"重庆三峡银行","XLBANK":"中山小榄村镇银行","HDBANK":"邯郸银行","KORLABANK":"库尔勒市商业银行","BOJZ":"锦州银行","QLBANK":"齐鲁银行","BOQH":"青海银行","YQCCB":"阳泉银行","SJBANK":"盛京银行","FSCB":"抚顺银行","ZZBANK":"郑州银行","SRCB":"深圳农村商业银行","BANKWF":"潍坊银行","JJBANK":"九江银行","JXRCU":"江西省农村信用","HNRCU":"河南省农村信用","GSRCU":"甘肃省农村信用","SCRCU":"四川省农村信用","GXRCU":"广西省农村信用","SXRCCU":"陕西信合","WHRCB":"武汉农村商业银行","YBCCB":"宜宾市商业银行","KSRB":"昆山农村商业银行","SZSBK":"石嘴山银行","HSBK":"衡水银行","XYBANK":"信阳银行","NBYZ":"鄞州银行","ZJKCCB":"张家口市商业银行","XCYH":"许昌银行","JNBANK":"济宁银行","CBKF":"开封市商业银行","WHCCB":"威海市商业银行","HBC":"湖北银行","BOCD":"承德银行","BODD":"丹东银行","JHBANK":"金华银行","BOCY":"朝阳银行","LSBC":"临商银行","BSB":"包商银行","LZYH":"兰州银行","BOZK":"周口银行","DZBANK":"德州银行","SCCB":"三门峡银行","AYCB":"安阳银行","ARCU":"安徽省农村信用社","HURCB":"湖北省农村信用社","HNRCC":"湖南省农村信用社","NYNB":"广东南粤银行","LYBANK":"洛阳银行","NHQS":"农信银清算中心","CBBQS":"城市商业银行资金清算中心"}';
+        //调用阿里api验证银行卡号是否正确
+        function CheckBank() {
+            if ($("#bank_name").val() == undefined || $("#bank_name").val() == null || $("#bank_name").val() == "") {
+                return;
+            }
+            var url = "https://ccdcapi.alipay.com/validateAndCacheCardInfo.json?cardNo=" + $("#bank_account").val() + "&cardBinCheck=true";
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                url: url,
+                success: function (res) {
+                    if (res.validated == true) {
+                        var json = $.parseJSON(bankjson);
+                        $.each(json, function (k, v) {
+                            if (k == res.bank) {
+                                $("#bank_name").val(v)
+                                return;
+                            }
+                        });
+                    } else {
+                        layer.msg("银行账号非法，请重新输入", {
+                            icon: 5
+                        });
+                    }
+                },
+                error: function (res) {
+                    layer.msg("银行账号验证接口调用失败，请联系管理员", {
+                        icon: 5
+                    });
+                }
+            });
+        }
+    </script>
+</body>
+</html>

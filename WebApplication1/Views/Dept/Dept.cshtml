@@ -1,0 +1,289 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Dept</title>
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <script src="~/js/button.js"></script>
+    <link href="~/layui/css/layui.css" rel="stylesheet" />
+    <script src="~/layui/layui.js"></script>
+    <script src="~/js/do_function.js"></script>
+</head>
+<body>
+    <form class="layui-form">
+        <div>
+            <br />
+            <div id="button">
+                <div class="layui-inline"></div>
+                <div class="layui-inline">
+                    <div class="layui-input-inline">
+                        <select name="Corp" id="corpSelect" lay-verify="" lay-filter="corpSelect" lay-search></select>
+                    </div>
+                    <div class="layui-input-inline">
+                        <input type="text" id="dept_name" lay-verify="" placeholder="请输入部门代码或名称" autocomplete="off" class="layui-input" />
+                    </div>
+                    <div class="layui-input-inline" id="Status">
+                        <input type="radio" name="radioName" value="0" lay-filter="radio" title="有效" checked="" class="">
+                        <input type="radio" name="radioName" value="1" lay-filter="radio" title="失效" class="">
+                    </div>
+                </div>
+            </div>
+            <table id="table1" lay-filter="table1"></table>
+        </div>
+    </form>
+    <script>
+        function GetCorp(form) {
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                url: '@Url.Action("GetCorp", "Public")',
+                success: function (res) {
+                    if (res.code == "0") {
+                        $.each(res.data, function (index, item) {
+                            $('#corpSelect').append('<option value="' + item.CORP_ID + '">' + item.CORP_NAME + '</option>');
+                        });
+
+                        $("#corpSelect").val('@ViewBag.CORP_ID');
+                        form.render('select');
+                    } else {
+                        layer.msg("加载公司信息出错了，请联系管理员", {
+                            icon: 5
+                        });
+                    }
+                },
+                error: function (res) {
+                    layer.msg("加载公司信息出错了，请联系管理员", {
+                        icon: 5
+                    });
+                }
+            });
+        }
+        var table; var ins, form,layer;
+        layui.use(['table', 'form'], function () {
+            table = layui.table, form = layui.form, layer = layui.layer;
+            form.render();
+            GetCorp(form);
+            ins = table.render({
+                elem: '#table1'
+              , height: document.documentElement.clientHeight - 60
+               , cellMinWidth: 120
+              , url: '@Url.Action("GetDeptByCorp", "Dept")',
+                where: {
+                    corp_id: '@ViewBag.CORP_ID',
+                    status: '0',
+                    dept_name: ''
+                }, method: 'Post'
+              , page: true //开启分页
+                , limit: 20
+                , limits: [20, 30, 40, 50]
+                , cols: [[ //表头
+                  { type: 'checkbox', fixed: 'left' }
+                , { field: 'DEPT_ID', title: '部门ID', hide: true }
+                , { field: 'CORP_NAME', title: '所属公司', sort: true, width: 250 }
+                , { field: 'DEPT_CODE', title: '部门代码', sort: true, width: 100 }
+                , { field: 'DEPT_NAME', title: '部门名称', sort: true, width: 250 }
+                , { field: 'STATUS', title: '状态', align: 'center', width: 100 }
+                ]], loading: true,
+                done: function () {
+                    var val = $('#Status input[name="radioName"]:checked ').val();
+                    if (val == "0") {
+                        $("#btnEnable").css({ "display": "none" });
+                        $("#btnFailure").css({ "display": "" });
+                    } else {
+                        $("#btnEnable").css({ "display": "" });
+                        $("#btnFailure").css({ "display": "none" });
+                    }
+                }
+            });
+            //监听单选框变更
+            form.on('radio(radio)', function (data) {
+                if (data.value == "0") {
+                    $("#btnEnable").css({ "display": "none" });
+                    $("#btnFailure").css({ "display": "" });
+                } else {
+                    $("#btnEnable").css({ "display": "" });
+                    $("#btnFailure").css({ "display": "none" });
+                }
+                Refresh();
+            });
+        });
+
+        function Refresh() {
+            table.reload('table1', {
+                url: '@Url.Action("GetDeptByCorp", "Dept")',
+                where: {
+                    status: $('#Status input[name="radioName"]:checked ').val(),
+                    corp_id: $('select[name="Corp"] option:selected').val(),
+                    dept_name: $("#dept_name").val()
+                },
+                method: 'Post',
+                page: {
+                    curr: 1
+                }
+            });
+        }
+
+        //新增
+        function btnAdd() {
+            win_show('@Url.Action("EditDept","Dept")' + '?status=add&Rowid=',layer,'新增 - 部门',800,300);
+        }
+        //编辑
+        function btnEdit() {
+            var checkStatus = table.checkStatus('table1');
+            if (checkStatus.data.length > 0) {
+                if (checkStatus.data.length > 1) {
+                    layer.msg("编辑只能勾选一行数据", { icon: 5 }); return;
+                }
+                if ($('#Status input[name="radioName"]:checked ').val() == "1") {
+                    layer.msg("无效状态的数据无法编辑", { icon: 5 }); return;
+                }
+                win_show('@Url.Action("EditDept", "Dept")' + '?status=update&Rowid=' + checkStatus.data[0].DEPT_ID, layer, '编辑 - 部门', 800, 300);
+            } else {
+                layer.msg('请先勾选数据', {
+                    icon: 5
+                });
+            }
+        }
+        //删除
+        function btnDel() {
+            var checkStatus = table.checkStatus('table1');
+            if (checkStatus.data.length > 0) {
+                var obj = [];
+                layer.confirm('是否删除？', { btn: ['是', '否'], icon: 3, title: '提示' }, function (index) {
+                    for (var i = 0; i < checkStatus.data.length; i++) {
+                        obj.push(checkStatus.data[i].DEPT_ID);
+                    }
+                    $.ajax({
+                        type: 'post',
+                        dataType: 'json',
+                        traditional: true,
+                        url: '@Url.Action("DeleteDept", "Dept")',
+                        data: {
+                            id: obj
+                        },
+                        success: function (res) {
+                            if (res.code == "200") {
+                                layer.msg(res.msg, { icon: 6 });
+                                Refresh();
+                            } else {
+                                layer.msg(res.msg, { icon: 5 });
+                            }
+                        },
+                        error: function () {
+                            layer.msg("接口出错，请联系管理员", { icon: 5 });
+                        }
+                    });
+                });
+            } else {
+                layer.msg('请先勾选数据', {
+                    icon: 5
+                });
+            }
+        }
+
+        //启用
+        function btnEnable() {
+            var checkStatus = table.checkStatus('table1');
+            if (checkStatus.data.length > 0) {
+                var obj =[];
+                layer.confirm('是否启用？', { btn: ['是', '否'], icon: 3, title: '提示' }, function (index) {
+                    for (var i = 0; i < checkStatus.data.length; i++) {
+                        obj.push(checkStatus.data[i].DEPT_ID);
+                    }
+                    $.ajax({
+                        type: 'post',
+                        dataType: 'json',
+                        traditional: true,
+                        url: '@Url.Action("EnableStatusForDept", "Dept")',
+                        data: {
+                            id: obj
+                        },
+                        success: function (res) {
+                            if (res.code == "200") {
+                                layer.msg(res.msg, { icon: 6 });
+                                Refresh();
+                            } else {
+                                layer.msg(res.msg, { icon: 5 });
+                            }
+                        },
+                        error: function () {
+                            layer.msg("接口出错，请联系管理员", { icon: 5 });
+                        }
+                    });
+                });
+            } else {
+                layer.msg('请先勾选数据', {
+                    icon: 5
+                });
+            }
+        }
+        //失效
+        function btnFailure() {
+            var checkStatus = table.checkStatus('table1');
+            if (checkStatus.data.length > 0) {
+                var obj =[];
+                layer.confirm('是否失效？', { btn: ['是', '否'], icon: 3, title: '提示' }, function (index) {
+                    for (var i = 0; i < checkStatus.data.length; i++) {
+                        obj.push(checkStatus.data[i].DEPT_ID);
+                    }
+                    $.ajax({
+                        type: 'post',
+                        dataType: 'json',
+                        traditional: true,
+                        url: '@Url.Action("FailureStatusForDept", "Dept")',
+                        data: {
+                            id: obj
+                        },
+                        success: function (res) {
+                            if (res.code == "200") {
+                                layer.msg(res.msg, { icon: 6 });
+                                Refresh();
+                            } else {
+                                layer.msg(res.msg, { icon: 5 });
+                            }
+                        },
+                        error: function () {
+                            layer.msg("接口出错，请联系管理员", { icon: 5 });
+                        }
+                    });
+                });
+            } else {
+                layer.msg('请先勾选数据', {
+                    icon: 5
+                });
+            }
+        }
+
+        //导出
+        function btnExport() {
+            var _form = document.createElement("form");
+            document.body.appendChild(_form);
+            _form.action = '@Url.Action("GetDeptForExport", "Dept")';
+            _form.data = ''; 
+            _form.method = 'post';
+            var _input = document.createElement("input");
+            _input.setAttribute("name", "dept_name");
+            _input.setAttribute("type", "hidden");
+            _input.setAttribute("value", $("#dept_name").val());
+            var _input2 = document.createElement("input");
+            _input2.setAttribute("name", "status");
+            _input2.setAttribute("type", "hidden");
+            _input2.setAttribute("value", $('#Status input[name="radioName"]:checked ').val());
+            var _input3 = document.createElement("input");
+            _input3.setAttribute("name", "corp_id");
+            _input3.setAttribute("type", "hidden");
+            _input3.setAttribute("value", $('select[name="Corp"] option:selected').val());
+            _form.appendChild(_input);
+            _form.appendChild(_input2);
+            _form.appendChild(_input3);
+            _form.submit();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,311 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>txryhd_index</title>
+    <link href="~/layui/css/layui.css" rel="stylesheet" />
+    <script src="~/layui/layui.js"></script>
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <script src="~/js/do_function.js"></script>
+    <script src="~/js/button.js"></script>
+    @*<style>
+            .layui-table-cell{
+                height:auto!important;
+                white-space:normal;
+            }
+        </style>*@
+    @*<script type="text/html" id="temp_img">
+            <img src="{{d.IMAGE_FIRST}}" onclick="show_photo('{{d.IMAGE_FIRST}}')">
+        </script>*@
+    <script type="text/html" id="person">
+        <a href="javascript:show_info('{{d.PERSON_ID}}','{{d.STATUS}}')" style="color:dodgerblue;">{{d.PERSON_NAME}}</a>
+    </script>
+</head>
+<body>
+    <form class="layui-form">
+        <br />
+        <div id="button">
+            <div class="layui-inline"></div>
+            <div class="layui-inline">
+                <div class="layui-input-inline">
+                    <input type="text" id="person_name" lay-verify="" placeholder="姓名" class="layui-input" />
+                </div>
+                <div class="layui-input-inline">
+                    <input type="text" id="id_card_number" lay-verify="" placeholder="身份证号码" class="layui-input" />
+                </div>
+                <div class="layui-input-inline" id="Status">
+                    <input type="radio" name="radioName" value="0" lay-filter="radio" title="未核验" checked="" class="">
+                    <input type="radio" name="radioName" value="1" lay-filter="radio" title="已核验" class="">
+                    <input type="radio" name="radioName" value="2" lay-filter="radio" title="复核通过" class="">
+                </div>
+                <div class="layui-input-inline">
+                    <a style="text-decoration:underline;color:deepskyblue;" href="~/ExcelTemp/退休人员信息新增导入模板.xls">导入模板下载</a>
+                </div>
+            </div>
+        </div>
+        <table id="table1" lay-filter="table1"></table>
+    </form>
+    <form class="layui-form" id="test" style="display:none">
+        <br />
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">导入结果</label>
+            <div class="layui-input-block">
+                <textarea lay-verify="required" id="Import" placeholder="导入结果" class="layui-textarea"></textarea>
+            </div>
+        </div>
+    </form>
+    <script>
+        var table, ins, layer, form, upload, files;
+        layui.use(['table', 'form', 'upload'], function () {
+            table = layui.table, layer = layui.layer, form = layui.form, upload = layui.upload;
+
+            ins = table.render({
+                elem: '#table1'
+                , cellMinWidth: 120
+                , height: document.documentElement.clientHeight - 80
+                , url: '@Url.Action("GetPerson", "Txryhd")',
+                where: {
+                    person_name: '',
+                    id_card_number:'',
+                    status: '0'
+                }, method: 'Post'
+                , page: true //开启分页
+                , limit: 20
+                , limits: [20, 30, 40, 50]
+                , cols: [[ //表头
+
+                    { type: 'checkbox', fixed: 'left', rowspan: 2 }
+                    , { field: 'PERSON_ID', title: '人员ID', hide: true, rowspan: 2 }
+                    , { field: 'PERSON_NAME', align: 'center', title: '姓名', sort: true, rowspan: 2,templet:'#person' }
+                    , { field: 'SEX', title: '性别', width: 80, sort: true, rowspan: 2 }
+                    , { field: 'AGE', title: '年龄', width: 80, sort: true, rowspan: 2 }
+                    , { field: 'PHONE', title: '联系电话', width: 120, sort: true, rowspan: 2 }
+                    , { field: 'ID_CARD_NUMBER', title: '身份证号', width: 180, sort: true, rowspan: 2 }
+                    , { field: 'NATIONAL', title: '民族', width: 80, sort: true, rowspan: 2 }
+                    , { field: 'POLITICAL_LANDSCAPE', title: '政治面貌', width: 100, sort: true, rowspan: 2 }
+                    , { field: 'LONG_TERM_RESIDENCE', title: '长期居住地', width: 180, sort: true, rowspan: 2 }
+                    , { field: 'DOMICILE_PLACE', title: '户籍所在地', width: 180, sort: true, rowspan: 2 }
+                    , { field: 'TRANSFER_TYPE', title: '转移接收地', width: 180, sort: true, rowspan: 2 }
+                    , { field: 'SPECIAL_PERSON', title: '特殊人员及其说明', width: 180, sort: true, rowspan: 2 }
+                    , { field: 'HEALTH', title: '健康状况', width: 150, sort: true, rowspan: 2 }
+                    , { field: 'E_I_ADDRESS', title: '养老保险参保地', width: 180, sort: true, rowspan: 2 }
+                    , { field: 'MEDICAL_I_ADDRESS', title: '医疗保险参保地', width: 150, sort: true, rowspan: 2 }
+                    , { field: 'IS_GSBX', title: '是否还继续享受工伤保险待遇', width: 230, sort: true, rowspan: 2 }
+                    , { field: 'LIVING_SITUATION', title: '居住情况', width: 180, sort: true, rowspan: 2 }
+                    , { field: 'TRANSFER_TYPE', title: '转交接收地', width: 180, sort: true, rowspan: 2 }
+                    , { field: 'STATUS', title: '状态', width: 120, sort: true, rowspan: 2 }
+                    //, { title: '户口本第一页信息照片', width: 200, templet: '#temp_img', field: 'IMAGE_FIRST',rowspan:2 }
+                    //, { title: '户口本本人信息页照片', width: 200, templet: '#temp_img2', field: 'IMAGE_SELF', rowspan: 2 }
+                    , { title: '其它情况', colspan: 10, align: 'center' }
+                ],
+                [
+                    { field: 'SPOUSE_NAME', title: '配偶姓名', width: 150, sort: true }
+                    , { field: 'SPOUSE_HEALTH', title: '配偶健康状况', width: 150, sort: true }
+                    , { field: 'SPOUSE_PHONE', title: '配偶联系电话', width: 150, sort: true }
+                    , { field: 'FAMILY_MAJOR_PERSON_NAME', title: '家庭主要联系人姓名', width: 180, sort: true }
+                    , { field: 'FAMILY_MAJOR_P_RELATIONSHIP', title: '家庭主要联系人与本人关系', width: 230, sort: true }
+                    , { field: 'FAMILY_MAJOR_PERSON_ADDRESS', title: '家庭主要联系人地址', width: 180, sort: true }
+                    , { field: 'FAMILY_MAJOR_PERSON_PHONE', title: '家庭主要联系人电话', width: 180, sort: true }
+                    , { field: 'E_PERSON', title: '紧急联系人', width: 180, sort: true }
+                    , { field: 'EP', title: '紧急联系人电话', width: 200, sort: true }
+                    , { field: 'EA', title: '紧急联系人地址', width: 200, sort: true }
+                    ]], loading: true,
+                done: function () {
+                    var val = $('#Status input[name="radioName"]:checked ').val();
+                    if (val == "0") {
+                        $("#btnHd").css({ "display": "none" });
+                    } else if (val == "1") {
+                        $("#btnHd").css({ "display": "" });
+                    } else {
+                        $("#btnHd").css({ "display": "none" });
+                    }
+                }
+            });
+            //监听单选框变更
+            form.on('radio(radio)', function (data) {
+                if (data.value == "0") {
+                    $("#btnHd").css({ "display": "none" });
+                } else if (data.value == "1") {
+                    $("#btnHd").css({ "display": "" });
+                } else {
+                    $("#btnHd").css({ "display": "none" });
+                }
+                Refresh();
+            });
+
+            //文件上传
+            upload.render({
+                elem: '#btnImport'
+                , url: '@Url.Action("FileUpload_Txry", "Txryhd")'
+                , accept: 'file' //普通文件
+                , exts: 'xls|xlsx' //允许上传的文件后缀
+                , multiple: false//单文件上传
+                , choose: function (obj) {
+                    files = obj.pushFile();
+                }
+                , before: function () {
+                    layer.load();
+                }
+                , done: function (res, index) {//返回值接收
+                    layer.closeAll('loading');
+                    if (res.code == 0) {
+                        layer.msg(res.msg, { icon: 6 });
+                        layer.open({
+                            type: 1,
+                            area: ['650px', '450px'],
+                            title: '导入结果'
+                            , content: $("#test"),
+                            shade: 0,
+                            cancel: function (layero, index) {
+                                $("#Import").val("");
+                                layer.closeAll();
+                            }
+                        });
+                        $("#Import").val(res.returnMsg);
+                    } else {
+                        layer.msg(res.msg, { icon: 5 });
+                    }
+                    delete files[index];
+                    Refresh();
+                }, error: function () {
+                    layer.closeAll('loading');
+                    layer.msg('导入失败，请联系管理员', { icon: 5 });
+                }
+            });
+        });
+
+         function Refresh() {
+            table.reload("table1", {
+                url: '@Url.Action("GetPerson", "Txryhd")',
+                where: {
+                    person_name: $("#person_name").val(),
+                    id_card_number: $("#id_card_number").val(),
+                    status: $('#Status input[name="radioName"]:checked ').val()
+                }, method: "Post",
+                page: {
+                    curr: 1
+                }
+            });
+        }
+
+        function btnAdd() {
+            var url = '@Url.Action("TXRY_PERSONEDIT", "Txryhd")'+'?Rowid=&status=add';
+            layer.open({
+                type: 2,
+                area: ['1000px', '650px'],
+                title: '退休人员信息 - 新增',
+                content: url
+            });
+        }
+
+        //编辑
+        function btnEdit() {
+            var checkStatus = table.checkStatus('table1');
+            if (checkStatus.data.length > 0) {
+                if (checkStatus.data.length > 1) {
+                    layer.msg("编辑只能勾选一行数据", { icon: 5 }); return;
+                }
+                var url = '@Url.Action("TXRY_PERSONEDIT", "Txryhd")' + '?status=update&Rowid=' + checkStatus.data[0].PERSON_ID;
+                layer.open({
+                    type: 2,
+                    area: ['1000px', '650px'],
+                    title: '退休人员信息 - 编辑',
+                    content: url
+                });
+            } else {
+                layer.msg('请先勾选数据', {
+                    icon: 5
+                });
+            }
+        }
+
+         //启用
+        function btnHd() {
+            var checkStatus = table.checkStatus('table1');
+            if (checkStatus.data.length > 0) {
+                var obj ="";
+                layer.confirm('确认核验通过吗？', { btn: ['是', '否'], icon: 3, title: '提示' }, function (index) {
+                    for (var i = 0; i < checkStatus.data.length; i++) {
+                        obj += checkStatus.data[i].PERSON_ID + ",";
+                    }
+                    obj = obj.substring(0, obj.length - 1);
+                    $.ajax({
+                        type: 'post',
+                        dataType: 'json',
+                        traditional: true,
+                        url: '@Url.Action("PersonConfirm", "Txryhd")',
+                        data: {
+                            id: obj
+                        },
+                        success: function (res) {
+                            if (res.code == "200") {
+                                layer.msg("核验成功", { icon: 6 });
+                                Refresh();
+                            } else {
+                                layer.msg(res.msg, { icon: 5 });
+                            }
+                        },
+                        error: function () {
+                            layer.msg("接口出错，请联系管理员", { icon: 5 });
+                        }
+                    });
+                });
+            } else {
+                layer.msg('请先勾选数据', {
+                    icon: 5
+                });
+            }
+        }
+
+        //导出
+        function btnExport() {
+            var _form = document.createElement("form");
+            document.body.appendChild(_form);
+            _form.action = '@Url.Action("GetTxryForExport", "Txryhd")';
+            _form.data = '';
+            _form.method = 'post';
+            var _input = document.createElement("input");
+            _input.setAttribute("name", "person_name");
+            _input.setAttribute("type", "hidden");
+            _input.setAttribute("value", $("#person_name").val());
+            var _input2 = document.createElement("input");
+            _input2.setAttribute("name", "id_card_number");
+            _input2.setAttribute("type", "hidden");
+            _input2.setAttribute("value", $("#id_card_number").val());
+            var _input3 = document.createElement("input");
+            _input3.setAttribute("name", "status");
+            _input3.setAttribute("type", "hidden");
+            _input3.setAttribute("value", $('#Status input[name="radioName"]:checked ').val());
+            _form.appendChild(_input);
+            _form.appendChild(_input2);
+            _form.appendChild(_input3);
+            _form.submit();
+        }
+        function show_photo(url) {
+            layer.open({
+                type: 1,
+                title: ['图片查看'],
+                shadeClose: true,
+                area: ['600px', 'auto'], //宽高
+                content: '<img src="' + url + '" height="auto" width="600px">'
+            });
+        }
+
+        function show_info(person_id, status) {
+            var url = '@Url.Action("txryhd_fh","Txryhd")' + '?Rowid=' + person_id+"&status="+(status=="已核验"?"update":"view");
+            layer.open({
+                type: 2,
+                area: ['1000px', '650px'],
+                title: '人员信息',
+                content: url
+            });
+        }
+    </script>
+</body>
+</html>

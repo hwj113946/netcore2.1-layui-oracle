@@ -1,0 +1,292 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>EditPost</title>
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <script src="~/js/do_function.js"></script>
+    <link href="~/layui/css/layui.css" rel="stylesheet" />
+    <script src="~/layui/layui.js"></script>
+    <script src="~/js/xm-select.js"></script>
+</head>
+<body>
+    <form style="text-align:center;" class="layui-form">
+        <br />
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label"><span style="color:red;">*</span>岗位代码</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" lay-verify="required" id="post_code" placeholder="请输入岗位代码">
+                </div>
+                <label class="layui-form-label"><span style="color:red;">*</span>岗位名称</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="post_name" lay-verify="required" placeholder="请输入岗位名称">
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label"><span style="color:red;">*</span>所属公司</label>
+                <div class="layui-input-inline">
+                    <select name="Corp" id="corpSelect" lay-verify="required" lay-filter="corpSelect" lay-search></select>
+                </div>
+                <label class="layui-form-label"><span style="color:red;">*</span>所属部门</label>
+                <div class="layui-input-inline">
+                    <select name="Dept" id="deptSelect" lay-verify="required" lay-filter="deptSelect" lay-search></select>
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label"><span style="color:red;">*</span>上级岗位</label>
+                <div class="layui-input-inline">
+                    <div id="xm" class="xm-select-demo"></div>
+                    @*<select name="Post" id="postSelect" lay-verify="required" lay-filter="postSelect" lay-search></select>*@
+                </div>
+                <label class="layui-form-label"></label>
+                <div class="layui-input-inline">
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div align="center">
+                <button class="layui-btn" lay-submit="" lay-filter="btnCommit">保存</button>
+                &nbsp;
+                <button class="layui-btn layui-btn-danger" onclick="btnClose()">关闭</button>
+            </div>
+        </div>
+    </form>
+    <script>
+        var layer, form, xm;
+        function GetCorp(form) {
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                url: '@Url.Action("GetCorp", "Public")',
+                success: function (res) {
+                    if (res.code == "0") {
+                        var corp, dept;
+                        $.each(res.data, function (index, item) {
+                            if (index == 0) {
+                                corp = item.CORP_ID;
+                                $.ajax({
+                                    type: 'post',
+                                    dataType: 'json',
+                                    url: '@Url.Action("GetDeptByCorp", "Public")',
+                                    data: {
+                                        corp_id: corp
+                                    },
+                                    success: function (res) {
+                                        if (res.code == "0") {
+                                            $.each(res.data, function (index, item) {
+                                                if (index == 0) {
+                                                    dept = item.DEPT_ID;
+                                                    GetPost(dept);
+                                                }
+                                                $('#deptSelect').append('<option value="' + item.DEPT_ID + '">' + item.DEPT_NAME + '</option>');
+                                            });
+
+                                            $("#deptSelect").val(dept);
+                                            form.render('select');
+                                        } else {
+                                            layer.msg(res.msg, {
+                                                icon: 5
+                                            });
+                                        }
+                                    },
+                                    error: function (res) {
+                                        layer.msg("加载部门信息出错了，请联系管理员", {
+                                            icon: 5
+                                        });
+                                    }
+                                });
+                            }
+                            $('#corpSelect').append('<option value="' + item.CORP_ID + '">' + item.CORP_NAME + '</option>');
+                        });
+
+                        $("#corpSelect").val(corp);
+                        form.render('select');
+                        //GetDept(form);
+                    } else {
+                        layer.msg(res.msg, {
+                            icon: 5
+                        });
+                    }
+                },
+                error: function (res) {
+                    layer.msg("加载公司信息出错了，请联系管理员", {
+                        icon: 5
+                    });
+                }
+            });
+        }
+
+        function GetDept(form) {
+            document.getElementById("deptSelect").options.length = 0;
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                url: '@Url.Action("GetDeptByCorp", "Public")',
+                data: {
+                    corp_id: $('select[name="Corp"] option:selected').val()
+                },
+                success: function (res) {
+                    if (res.code == "0") {
+                        var depts;
+                        $.each(res.data, function (index, item) {
+                            if (index == 0) {
+                                depts = item.DEPT_ID;
+                                GetPost(depts);
+                            }
+                            $('#deptSelect').append('<option value="' + item.DEPT_ID + '">' + item.DEPT_NAME + '</option>');
+                        });
+
+                        $("#deptSelect").val(depts);
+                        form.render('select');
+                    } else {
+                        layer.msg(res.msg, {
+                            icon: 5
+                        });
+                    }
+                },
+                error: function (res) {
+                    layer.msg("加载部门信息出错了，请联系管理员", {
+                        icon: 5
+                    });
+                }
+            });
+        }
+        function GetPost(dept_id) {
+           $.ajax({
+                type: 'post',
+                dataType: 'json',
+                url: '@Url.Action("GetPostByDeptToTree", "Posts")',
+                data: { dept_id: dept_id },
+               success: function (res) {
+                   if (res.code == "0") {
+                       xm = xmSelect.render({
+                           el: '#xm',
+                           data: res.data,
+                           //显示为text模式
+                           model: { label: { type: 'text' } },
+                           //单选模式
+                           radio: true,
+                           //选中关闭
+                           clickClose: true,
+                           //树
+                           tree: {
+                               show: true,
+                               //非严格模式
+                               strict: false,
+                               //默认展开节点
+                               expandedKeys: [-1],
+                           },
+                           //展开所有节点
+                           expandedKeys: true
+                       });
+                    }
+               }, error: function () {
+                    layer.msg("接口出错，请联系管理员", { icon: 5 });
+                }
+            });
+
+        }
+
+
+        layui.use(["layer", "form"], function () {
+            layer = layui.layer, form = layui.form;
+            form.render();
+            GetCorp(form);
+
+            //监听公司下拉框变更
+            form.on('select(corpSelect)', function (data) {
+                GetDept(form);
+            });
+            //监听部门下拉框变更
+            form.on('select(deptSelect)', function (data) {
+                GetPost(data.value);
+            });
+            //监听提交
+             form.on("submit(btnCommit)", function (data) {
+                 var post_code = $("#post_code").val();
+                 var post_name = $("#post_name").val();
+                 var dept_id = $('select[name="Dept"] option:selected').val();
+                 var parent_post_id = xm.getValue('valueStr');
+                var status = '@ViewBag.status';
+                var url = status == "add" ? '@Url.Action("Insert","Posts")' : '@Url.Action("Modify", "Posts")';
+                var data = status == "add" ?
+                    {
+                        post_code: post_code, post_name: post_name, dept_id: dept_id, parent_post_id: parent_post_id
+                    }
+                    :
+                    {
+                        post_code: post_code, post_name: post_name, dept_id: dept_id, post_id: '@ViewBag.post_id', parent_post_id: parent_post_id
+                    };
+                $.ajax({
+                    type: 'post',
+                    dataType: 'json',
+                    url: url,
+                    data: data,
+                    success: function (res) {
+                        if (res.code == "200") {
+                            parent.layer.close(parent.layer.getFrameIndex(window.name));
+                            parent.layer.msg("保存成功", {
+                                icon: 6
+                            });
+                            parent.Refresh();
+                            return false;
+                        } else {
+                            layer.msg(res.msg, { icon: 5 });
+                            return false;
+                        }
+                    },
+                    error: function () {
+                        layer.msg("接口出错，请联系管理员", { icon: 5 });
+                        return false;
+                    }
+                });
+                return false;
+            });
+        });
+
+        function btnClose() {
+            var index = parent.layer.getFrameIndex(window.name);
+            parent.layer.close(index);
+        }
+
+        $(document).ready(function () {
+            if ('@ViewBag.status' == "add") {
+                return;
+            }
+            //不延时，岗位树无法选中，会报找不到setValue
+            setTimeout(function () {
+                $.ajax({
+                    type: 'post',
+                    dataType: 'json',
+                    url: '@Url.Action("GetPostByPostId", "Posts")',
+                    data: { post_id: '@ViewBag.post_id' },
+                    success: function (res) {
+                        if (res.code == "0") {
+                            $("#post_code").val(res.data[0].POST_CODE);
+                            $("#post_name").val(res.data[0].POST_NAME);
+                            //console.log(xm);
+                            xm.setValue([res.data[0].POST_ID]);
+                            $("#corpSelect option[value='" + res.data[0].CORP_ID + "']").prop("selected", true);
+                            $("#deptSelect option[value='" + res.data[0].DEPT_ID + "']").prop("selected", true);
+                            form.render('select');
+                        }
+                    }, error: function (res) {
+                        layer.msg("接口出错，请联系管理员", { icon: 5 });
+                    }
+                });
+            }, 100);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>审批流类型编辑</title>
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <script src="~/js/do_function.js"></script>
+    <script src="~/layui/layui.js"></script>
+    <link href="~/layui/css/layui.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="layui-form" style="text-align:center;">
+        <br />
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label"><span style="color:red;">*</span>代码</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" lay-verify="required" id="code" name="Code" placeholder="请输入代码" maxlength="50" onkeyup="this.value=this.value.replace(/[^\w_]/g,'');">
+                </div>
+                <label class="layui-form-label"><span style="color:red;">*</span>名称</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="name" name="Name" lay-verify="required" placeholder="请输入名称" maxlength="50">
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label"><span style="color:red;">*</span>流程类型</label>
+                <div class="layui-input-inline" id="">
+                    <input type="text" class="layui-input" id="attribute3" name="attribute3" lay-verify="number" placeholder="类型：0-审批流程；1-子流程" maxlength="1">
+                </div><label class="layui-form-label"><span style="color:red;">*</span>启动状态</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="start_status" placeholder="请输入启动状态" lay-verify="required" lay-verify="number" class="layui-input" id="start_status">
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label"><span style="color:red;">*</span>结束状态</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="end_status" name="end_status" lay-verify="required" lay-verify="number" placeholder="请输入结束状态">
+                </div>
+                <label class="layui-form-label"><span style="color:red;">*</span>退回状态</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="cancel_status" name="cancel_status" lay-verify="required" lay-verify="number" placeholder="请输入退回状态">
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label"><span style="color:red;">*</span>查看页面</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="attribute1" name="attribute1" lay-verify="required" placeholder="请输入查看页面">
+                </div>
+                <label class="layui-form-label"><span style="color:red;">*</span>对应表</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="attribute9" name="attribute9" placeholder="请输入对应表" lay-verify="required" onkeyup="this.value=this.value.replace(/[^\w_]/g,'');">
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label"><span style="color:red;">*</span>表主键</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" lay-verify="required" id="attribute2" name="attribute2" placeholder="请输入表主键" onkeyup="this.value=this.value.replace(/[^\w_]/g,'');">
+                </div>
+                <label class="layui-form-label"><span style="color:red;">*</span>表状态字段</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="attribute10" lay-verify="required" name="attribute10" placeholder="请输入表状态字段" onkeyup="this.value=this.value.replace(/[^\w_]/g,'');">
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label"><span style="color:red;">*</span>表存储审批ID</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="attribute11" name="attribute11" lay-verify="required" placeholder="请输入表存储审批ID" onkeyup="this.value=this.value.replace(/[^\w_]/g,'');" />
+                </div>
+                <label class="layui-form-label">是否重新生成流程</label>
+                <div class="layui-input-inline">
+                    <input placeholder="类型：0-否；1-是" class="layui-input" lay-verify="required" id="attribute4" name="attribute4" maxlength="1" />
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">调用存储过程</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="attribute6" name="attribute6" placeholder="请输入调用存储过程" />
+                </div>
+                <label class="layui-form-label">备注</label>
+                <div class="layui-input-inline">
+                    <input placeholder="请输入备注内容" class="layui-input" id="note" name="note" />
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div align="center">
+                <button class="layui-btn" id="btnCommit" lay-submit="" lay-filter="btnCommit">保存</button>
+                &nbsp;
+                <button class="layui-btn layui-btn-danger" onclick="btnClose()">关闭</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        var form, layer;
+        layui.use(['form', 'layer'], function () {
+            form = layui.form, layer = layui.layer;
+            //监听提交
+            form.on('submit(btnCommit)', function (data) {
+                var code = $("#code").val() == null ? "" : $("#code").val();
+                var name = $("#name").val() == null ? "" : $("#name").val();
+                var start_status = $("#start_status").val() == null ? "" : $("#start_status").val();
+                var end_status = $("#end_status").val() == null ? "" : $("#end_status").val();
+                var cancel_status = $("#cancel_status").val() == null ? "" : $("#cancel_status").val();
+                var note = $("#note").val() == null ? "" : $("#note").val();
+                var status = $("#status").val() == null ? "" : $("#status").val();
+                var attribute1 = $("#attribute1").val() == null ? "" : $("#attribute1").val();
+                var attribute2 = $("#attribute2").val() == null ? "" : $("#attribute2").val();
+                var attribute3 = $("#attribute3").val() == null ? "" : $("#attribute3").val();
+                var attribute4 = $("#attribute4").val() == null ? "" : $("#attribute4").val();
+                var attribute6 = $("#attribute6").val() == null ? "" : $("#attribute6").val();
+                var attribute9 = $("#attribute9").val() == null ? "" : $("#attribute9").val();
+                var attribute10 = $("#attribute10").val() == null ? "" : $("#attribute10").val();
+                var attribute11 = $("#attribute11").val() == null ? "" : $("#attribute11").val();
+                var zt = '@ViewBag.zt';
+                var url = "";
+                var datas;
+                if (zt == "add") {
+                    url = '@Url.Action("WorkFlowTypeInsert","WorkFlow")';
+                    datas = {
+                        code: code, name: name, attribute3: attribute3, start_status: start_status, end_status: end_status, cancel_status: cancel_status,
+                        note: note, attribute4: attribute4, attribute6: attribute6, attribute1: attribute1,
+                        status: status, attribute9: attribute9, attribute2: attribute2, attribute10: attribute10, attribute11: attribute11
+                    };
+                } else {
+                    var id = '@ViewBag.id';
+                    url = '@Url.Action("WorkFlowTypeUpdate", "WorkFlow")';
+                    datas = {
+                        code: code, name: name, attribute3: attribute3, start_status: start_status, end_status: end_status, cancel_status: cancel_status,
+                        note: note, attribute4: attribute4, attribute6: attribute6, attribute1: attribute1,
+                        status: status, attribute9: attribute9, attribute2: attribute2, attribute10: attribute10, attribute11: attribute11, id: id
+                    };
+                }
+                $.ajax({
+                    type: 'post',
+                    dataType: 'json',
+                    url: url,
+                    data: datas,
+                    success: function (res) {
+                        if (res.code == "200") {
+                            parent.layer.close(parent.layer.getFrameIndex(window.name));
+                            parent.layer.msg("保存成功", {
+                                icon: 6
+                            });
+                            parent.Refresh();
+                            return false;
+                        } else {
+                            layer.msg(res.msg, { icon: 5 });
+                            return false;
+                        }
+                    },
+                    error: function () {
+                        layer.msg("接口出错，请联系管理员", { icon: 5 });
+                        return false;
+                    }
+                });
+                return false;
+            });
+        });
+        $(document).ready(function () {
+            var zt = '@ViewBag.zt';
+            if (zt == "update") {
+                $("#code").val('@ViewBag.code');
+                $("#name").val('@ViewBag.name');
+                $("#start_status").val('@ViewBag.start_status');
+                $("#end_status").val('@ViewBag.end_status');
+                $("#cancel_status").val('@ViewBag.cancel_status');
+                $("#note").val('@ViewBag.note');
+                $("#status").val('@ViewBag.status');
+                $("#attribute1").val('@ViewBag.attribute1');
+                $("#attribute2").val('@ViewBag.attribute2');
+                $("#attribute3").val('@ViewBag.attribute3');
+                $("#attribute4").val('@ViewBag.attribute4');
+                $("#attribute6").val('@ViewBag.attribute6');
+                $("#attribute9").val('@ViewBag.attribute9');
+                $("#attribute10").val('@ViewBag.attribute10');
+                $("#attribute11").val('@ViewBag.attribute11');
+            }
+        });
+        function btnClose() {
+            var index = parent.layer.getFrameIndex(window.name);
+            parent.layer.close(index);
+        }
+    </script>
+</body>
+</html>

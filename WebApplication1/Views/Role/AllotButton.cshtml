@@ -1,0 +1,194 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>AllotButton</title>
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <link href="~/layui/css/layui.css" rel="stylesheet" />
+    <script src="~/layui/layui.js"></script>
+</head>
+<body>
+    <form class="layui-form" style="margin-top:5px;">
+        <div>
+            <div class="layui-inline"></div>
+            <div class="layui-inline">
+                <div class="layui-input-inline">
+                    <input type="text" id="button_name" lay-verify="" placeholder="请输入按钮名称" class="layui-input" />
+                </div>
+                <div class="layui-input-inline" id="Status">
+                    <input type="radio" name="radioName" lay-filter="radio" value="未选" title="未选按钮" class="" checked="">
+                    <input type="radio" name="radioName" lay-filter="radio" value="已选" title="已选按钮" class="">
+                </div>
+            </div>
+            <div class="layui-inline">
+                <a class="layui-btn layui-btn-sm layui-btn-primary" onclick="Refresh()">查询</a>
+            </div>
+            <div class="layui-inline"><a class="layui-btn layui-btn-sm" id="btnAllot" onclick="btnCommit()">分配</a></div>
+            <div class="layui-inline"><a class="layui-btn layui-btn-sm layui-btn-danger" id="btnDel" onclick="btnRemove()">移除</a></div>
+            <table id="table1" lay-filter="table1"></table>
+        </div>
+    </form>
+    <script>
+        var table, ins, layer;
+        layui.use(['table', 'form', 'layer'], function () {
+            table = layui.table, form = layui.form, layer = layui.layer;
+
+            //渲染表格数据
+            table.render({
+                elem: '#table1'
+                , height: document.documentElement.clientHeight - 65
+                , url: '@Url.Action("GetButton", "Role")',
+                where: {
+                    button_name: "",
+                    menu_id: '@ViewBag.menu_id',
+                    role_id: '@ViewBag.role_id',
+                    status: '未选'
+                }, method: 'Post'
+                , page: true //开启分页
+                , limit: 10
+                , limits: [10, 20, 50]
+                , cols: [[ //表头
+                    { type: 'checkbox', fixed: 'left' }
+                    , { field: 'ROLE_BUTTON_ID', title: 'ROLE_BUTTON_ID', sort: true, hide: true }
+                    , { field: 'BUTTON_ID', title: 'BUTTON_ID', sort: true, hide: true }
+                    , { field: 'BUTTON_NAME', title: '按钮名称', sort: true }
+                    , { field: 'BUTTON_ICON', title: '按钮图标', sort: true }
+                    , { field: 'BUTTON_EVENT', title: '按钮事件', sort: true }
+                    , { field: 'ATTRIBUTE1', title: '按钮颜色', sort: true }
+                    , { field: 'BUTTON_SORT', title: '按钮排序', sort: true }
+                ]]
+            });
+            //监听单选框变更
+            form.on('radio(radio)', function (data) {
+                if (data.value == "未选") {
+                    $("#btnAllot").css({ "display": "" });
+                    $("#btnDel").css({ "display": "none" });
+                } else {
+                    $("#btnAllot").css({ "display": "none" });
+                    $("#btnDel").css({ "display": "" });
+                }
+                Refresh();
+            });
+        });
+        //刷新
+        function Refresh() {
+            table.reload('table1', {
+                url: '@Url.Action("GetButton", "Role")',
+                where: {
+                    button_name: $("#button_name").val(),
+                    status: $('#Status input[name="radioName"]:checked ').val(),
+                    menu_id: '@ViewBag.menu_id',
+                    role_id:'@ViewBag.role_id'
+                },
+                method: 'Post',
+                page: {
+                    curr: 1
+                }
+            });
+        }
+         //移除
+        function btnRemove() {
+            var checkStatus = table.checkStatus('table1');
+            var obj = [];
+            if (checkStatus.data.length > 0) {
+                layer.confirm('确认移除已勾选的按钮吗？', { btn: ['是', '否'], icon: 3, title: '提示' }, function (index) {
+                    for (var i = 0; i < checkStatus.data.length; i++) {
+                        obj.push(checkStatus.data[i].ROLE_BUTTON_ID);
+                    }
+                    $.ajax({
+                        type: 'post',
+                        dataType: 'json',
+                        traditional: true,
+                        url: '@Url.Action("RemoveButton", "Role")',
+                        data: {
+                            role_button_id: obj
+                        },
+                        success: function (res) {
+                            if (res.code == "200") {
+                                var index = parent.layer.getFrameIndex(window.name);
+                                //再执行关闭
+                                parent.layer.close(index);
+                                parent.Refresh();
+                                parent.layer.msg("移除成功", {
+                                    icon: 6
+                                });
+                            } else {
+                                layer.msg(res.msg, {
+                                    icon: 5
+                                });
+                            }
+                        },
+                        error: function (res) {
+                            layer.msg("接口出错，请联系管理员", {
+                                icon: 5
+                            });
+                        }
+                    });
+                });
+            } else {
+                layer.msg('请先选中数据', {
+                    icon: 5
+                });
+            }
+        }
+        //分配
+        function btnCommit() {
+            var checkStatus = table.checkStatus('table1');
+            var obj = [];
+            if (checkStatus.data.length > 0) {
+                layer.confirm('确认分配已勾选的按钮吗？', { btn: ['是', '否'], icon: 3, title: '提示' }, function (index) {
+                    for (var i = 0; i < checkStatus.data.length; i++) {
+                        obj.push(checkStatus.data[i].BUTTON_ID);
+                    }
+                    $.ajax({
+                        type: 'post',
+                        dataType: 'json',
+                        traditional: true,
+                        url: '@Url.Action("AllotButton", "Role")',
+                        data: {
+                            role_id: '@ViewBag.role_id',
+                            menu_id: '@ViewBag.menu_id',
+                            button_id: obj
+                        },
+                        success: function (res) {
+                            if (res.code == "200") {
+                                var index = parent.layer.getFrameIndex(window.name);
+                                //再执行关闭
+                                parent.layer.close(index);
+                                parent.Refresh();
+                                parent.layer.msg(res.msg, {
+                                    icon: 6
+                                });
+                            } else {
+                                layer.msg(res.msg, {
+                                    icon:5
+                                });
+                            }
+
+                        },
+                        error: function (res) {
+                            layer.msg("接口出错，请联系管理员", {
+                                icon: 5
+                            });
+                        }
+                    });
+                });
+            } else {
+                layer.msg('请先选中数据', {
+                    icon: 5
+                });
+            }
+        }
+        $(document).ready(function () {
+            $("#btnAllot").css({ "display": "" });
+            $("#btnDel").css({ "display": "none" });
+        });
+    </script>
+</body>
+</html>

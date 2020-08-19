@@ -1,0 +1,152 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>EditDept</title>
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <script src="~/js/do_function.js"></script>
+    <link href="~/layui/css/layui.css" rel="stylesheet" />
+    <script src="~/layui/layui.js"></script>
+</head>
+<body>
+    <form style="text-align:center;" class="layui-form">
+        <br />
+        <div class="layui-form-item">
+            <div class="layui-inline">
+
+                <label class="layui-form-label"><span style="color:red;">*</span>部门代码</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" lay-verify="required" id="dept_code" placeholder="请输入部门代码">
+                </div>
+                <label class="layui-form-label"><span style="color:red;">*</span>部门名称</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="dept_name" lay-verify="required" placeholder="请输入部门名称">
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label"><span style="color:red;">*</span>所属公司</label>
+                <div class="layui-input-inline">
+                    <select name="Corp" id="corpSelect" lay-verify="required" lay-filter="corpSelect" lay-search></select>
+                </div>
+                <label class="layui-form-label"></label>
+                <div class="layui-input-inline">
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div align="center">
+                <button class="layui-btn" lay-submit="" lay-filter="btnCommit">保存</button>
+                &nbsp;
+                <button class="layui-btn layui-btn-danger" onclick="btnClose()">关闭</button>
+            </div>
+        </div>
+    </form>
+    <script>
+         function GetCorp(form) {
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                url: '@Url.Action("GetCorp", "Public")',
+                success: function (res) {
+                    if (res.code == "0") {
+                        $.each(res.data, function (index, item) {
+                            $('#corpSelect').append('<option value="' + item.CORP_ID + '">' + item.CORP_NAME + '</option>');
+                        });
+
+                        $("#corpSelect").val('@ViewBag.CORP_ID');
+                        form.render('select');
+                    } else {
+                        layer.msg("加载公司信息出错了，请联系管理员", {
+                            icon: 5
+                        });
+                    }
+                },
+                error: function (res) {
+                    layer.msg("加载公司信息出错了，请联系管理员", {
+                        icon: 5
+                    });
+                }
+            });
+        }
+        var layer, form;
+        layui.use(["layer", "form"], function () {
+            layer = layui.layer, form = layui.form;
+            form.render();
+            GetCorp(form);
+            form.on("submit(btnCommit)", function (data) {
+                var dept_code = $("#dept_code").val();
+                var dept_name = $("#dept_name").val();
+                var corp_id = $('select[name="Corp"] option:selected').val();
+                var status = '@ViewBag.status';
+                var url = status == "add" ? '@Url.Action("Insert","Dept")' : '@Url.Action("Modify", "Dept")';
+                var data = status == "add" ?
+                    {
+                        dept_code: dept_code, dept_name: dept_name, corp_id: corp_id
+                    }
+                    :
+                    {
+                        dept_code: dept_code, dept_name: dept_name, corp_id: corp_id,dept_id:'@ViewBag.dept_id'
+                    };
+                $.ajax({
+                    type: 'post',
+                    dataType: 'json',
+                    url: url,
+                    data: data,
+                    success: function (res) {
+                        if (res.code == "200") {
+                            parent.layer.close(parent.layer.getFrameIndex(window.name));
+                            parent.layer.msg("保存成功", {
+                                icon: 6
+                            });
+                            parent.Refresh();
+                            return false;
+                        } else {
+                            layer.msg(res.msg, { icon: 5 });
+                            return false;
+                        }
+                    },
+                    error: function () {
+                        layer.msg("接口出错，请联系管理员", { icon: 5 });
+                        return false;
+                    }
+                });
+                return false;
+            });
+        });
+        function btnClose() {
+            var index = parent.layer.getFrameIndex(window.name);
+            parent.layer.close(index);
+        }
+
+        $(document).ready(function () {
+            if ('@ViewBag.status' == "add") {
+                return;
+            }
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                url: '@Url.Action("GetDeptById", "Dept")',
+                data: { dept_id: '@ViewBag.dept_id' },
+                success: function (res) {
+                    if (res.code == "0") {
+                        $("#dept_code").val(res.data[0].DEPT_CODE);
+                        $("#dept_name").val(res.data[0].DEPT_NAME);
+                        $("#corpSelect option[value='" + res.data[0].CORP_ID + "']").prop("selected", true);
+                        form.render('select');
+                    }
+                }, error: function (res) {
+                    layer.msg("接口出错，请联系管理员", { icon: 5 });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

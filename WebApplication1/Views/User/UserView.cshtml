@@ -1,0 +1,96 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>UserView</title>
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <link href="~/layui/css/layui.css" rel="stylesheet" />
+    <script src="~/layui/layui.js"></script>
+</head>
+<body>
+    <div class="layui-form">
+        <br />
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">账户</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" readonly="readonly" id="code" >
+                </div>
+                <label class="layui-form-label">姓名</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="name" >
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">性别</label>
+                <div class="layui-input-inline">
+                    <input type="text"  id="sex" readonly="readonly" class="layui-input">
+                </div><label class="layui-form-label">Email</label>
+                <div class="layui-input-inline">
+                    <input type="text" id="email" readonly="readonly" class="layui-input">
+                </div>
+
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">身份证号码</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" readonly="readonly" id="id_card_number" >
+                </div><label class="layui-form-label">手机号码</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" readonly="readonly" id="phone">
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">公司</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" readonly="readonly" id="corp" >
+                </div>
+                <label class="layui-form-label">部门</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" readonly="readonly" id="dept" >
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">岗位</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" readonly="readonly" id="post">
+                </div>
+                <label class="layui-form-label"></label>
+                <div class="layui-input-inline">
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        
+        layui.use(['form'], function () {
+            var form = layui.form;
+            form.render();
+            $("#code").val('@ViewBag.USER_CODE');
+            $("#name").val('@ViewBag.USER_NAME');
+            $("#sex").val('@ViewBag.SEX');
+            $("#email").val('@ViewBag.EMAIL');
+            $("#phone").val('@ViewBag.MOBILE_PHONE');
+            $("#id_card_number").val('@ViewBag.ID_CARD_NUMBER');
+            $("#corp").val('@ViewBag.CORP_NAME');
+            $("#dept").val('@ViewBag.DEPT_NAME');
+            $("#post").val('@ViewBag.POST_NAME');
+            
+        });
+    </script>
+</body>
+</html>
